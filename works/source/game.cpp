@@ -1,7 +1,4 @@
 #include "Util.h"
-
-
-
 void test()
 {
     /*
@@ -15,8 +12,6 @@ void test()
     */
     Poker a(jack,diamond);
     Poker b(nine,spade);
-
-
 /*
    手牌类 HandCards
    成员函数：
@@ -24,12 +19,10 @@ void test()
        GetClass() 获得类别名
        GetUnique() 归类前排名
        GetDistinct() 归类后排名
-
 */
     HandCards t;
     t.add(a);
     t.add(b);
-
     //凑齐7张牌进行分析
     Result res = t.Analyze(7);
     //分析结果
@@ -37,12 +30,7 @@ void test()
     //显示结果
     res.show();
 }
-
-
 int main()
 {
-
-
    test();
-
 }
