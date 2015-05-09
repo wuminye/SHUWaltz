@@ -30,7 +30,22 @@ void test()
     //显示结果
     res.show();
 }
+void test2(){
+  for(int i=0;i<13*4-1;++i){
+    for(int j=i+1;j<13*4-1;++j){
+      HandCards t;
+      t.add(Poker(i));
+      t.add(Poker(j));
+      Result res = t.Analyze(7);
+      //分析结果
+      res.Calc();
+      //显示结果
+      res.show();
+    }
+  }
+}
 int main()
 {
-   test();
+   freopen("in.txt","w",stdout);
+   test2();
 }

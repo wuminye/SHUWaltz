@@ -156,15 +156,17 @@ public:
     }
     void show()
     {
-        printf("============================\n");
+        //printf("============================\n");
         for (int i=0; i<9; ++i)
         {
-            printf("%d.",i+1);
-            cout<<value_str[i+1]<<"      \t";
-            printf("%f%%\n",pc[i]);
+            //printf("%d.",i+1);
+            //cout<<value_str[i+1]<<"      \t";
+            //printf("%f%%\n",pc[i]);
+            printf ("%f ",pc[i]);
         }
-        printf("\nE:%f%%\n",E);
-        printf("============================\n");
+        //printf("\nE:%f%%\n",E);
+        printf("%f\n",E);
+        //printf("============================\n");
     }
 };
 
@@ -200,7 +202,7 @@ public:
 
             while (!Check())
             {
-                if (_next()) break;
+                if (!_next()) break;
             }
 
         }
@@ -266,7 +268,7 @@ public:
     {
         data =t;
     }
-    void add(Poker & k)
+    void add(const Poker & k)
     {
         data.push_back(k);
     }
@@ -328,11 +330,11 @@ public:
                 int b = tem.GetDistinct();
                 int c = tem.GetClassRank();
                 res.add(a,b,c);
-                if (nn%10000==0) printf("%d\n",nn);
+                //if (nn%10000==0) printf("%d\n",nn);
                 if (!iter.next()) break;
             }
         }
-        printf("%d\n",nn);
+        //printf("%d\n",nn);
         return res;
     }
 
