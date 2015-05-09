@@ -340,7 +340,7 @@ public:
 
 int mmax;
 HandCards mt;
-vector<int> index;
+vector<int> Index;
 vector<bool> cifv;
 void choosedfs(vector<Poker>  &data,int i,int cnt,int tag)
 {
@@ -350,10 +350,10 @@ void choosedfs(vector<Poker>  &data,int i,int cnt,int tag)
         tem.add(data[0]);
         tem.add(data[1]);
 
-        for (int j=0; j<(int)index.size(); ++j)
+        for (int j=0; j<(int)Index.size(); ++j)
         {
             if (!cifv[j]) continue;
-            tem.add(data[index[j]]);
+            tem.add(data[Index[j]]);
         }
 
         int pp = tem.GetDistinct();
@@ -365,7 +365,7 @@ void choosedfs(vector<Poker>  &data,int i,int cnt,int tag)
         }
         return;
     }
-    if (i>=(int)index.size()) return;
+    if (i>=(int)Index.size()) return;
 
     cifv[i]=true;
     choosedfs(data,i+1,cnt+1,tag);
@@ -374,11 +374,11 @@ void choosedfs(vector<Poker>  &data,int i,int cnt,int tag)
 }
  vector<Poker>  ChooseMax( vector<Poker> &data)
 {
-    index.clear();
+    Index.clear();
     cifv.clear();
     for (int i=2; i<(int)data.size(); ++i)
     {
-        index.push_back(i);
+        Index.push_back(i);
         cifv.push_back(false);
     }
     mmax =10000;
