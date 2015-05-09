@@ -9,12 +9,13 @@ void test()
        两种构造函数
        Poker a(ace,spade);
         Poker a(12);
+{spade, heart,  diamond,club};
+{deuce,trey,four,five,six,seven,eight,
+ nine,ten,jack,queen,king,ace};
     */
-    Poker a(ace,club);
-    Poker b(11);
-    Poker c(10);
-    Poker d(8);
-    Poker e(9);
+    Poker a(jack,diamond);
+    Poker b(nine,spade);
+
 
 /*
    手牌类 HandCards
@@ -28,13 +29,13 @@ void test()
     HandCards t;
     t.add(a);
     t.add(b);
-    t.add(c);
-    t.add(d);
-    t.add(e);
 
-    cout<<t.GetClass()<<endl;
-     cout<<t.GetUnique()<<endl;
-     cout<<t.GetDistinct()<<endl;
+    //凑齐7张牌进行分析
+    Result res = t.Analyze(7);
+    //分析结果
+    res.Calc();
+    //显示结果
+    res.show();
 }
 
 

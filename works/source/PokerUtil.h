@@ -219,6 +219,7 @@ short eval_5hand( int *hand )
 
 
 #define Equivalence 7462
+#define UniqueNum 2598960
 int deck[52], hand[5], freq[10];
 int Punique[Equivalence];
 
