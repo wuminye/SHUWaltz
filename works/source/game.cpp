@@ -1,51 +1,57 @@
 #include "Util.h"
+
 void test()
 {
     /*
-       Ò»ÕÅÅÆµÄÀàPoker
-       Á½ÖÖ¹¹Ôìº¯Êı
-       Poker a(ace,spade);
+       ä¸€å¼ ç‰Œçš„ç±»Poker
+       ä¸¤ç§æ„é€ å‡½æ•°
+        Poker a(ace,spade);
         Poker a(12);
-{spade, heart,  diamond,club};
-{deuce,trey,four,five,six,seven,eight,
- nine,ten,jack,queen,king,ace};
+     {spade,heart,diamond,club};
+     {deuce,trey,four,five,six,seven,eight,nine,ten,jack,queen,king,ace};
+     
     */
+    
     Poker a(jack,diamond);
     Poker b(nine,spade);
 /*
-   ÊÖÅÆÀà HandCards
-   ³ÉÔ±º¯Êı£º
-       add(Poker) Ìí¼ÓÆË¿ËÅÆ
-       GetClass() »ñµÃÀà±ğÃû
-       GetUnique() ¹éÀàÇ°ÅÅÃû
-       GetDistinct() ¹éÀàºóÅÅÃû
+   æ‰‹ç‰Œç±» HandCards
+   æˆå‘˜å‡½æ•°ï¼š
+       add(Poker) æ·»åŠ æ‰‘å…‹ç‰Œ
+       GetClass() è·å¾—ç±»åˆ«å
+       GetUnique() å½’ç±»å‰æ’å
+       GetDistinct() å½’ç±»åæ’å
 */
     HandCards t;
     t.add(a);
     t.add(b);
-    //´ÕÆë7ÕÅÅÆ½øĞĞ·ÖÎö
+    //å‡‘é½7å¼ ç‰Œè¿›è¡Œåˆ†æ
     Result res = t.Analyze(7);
-    //·ÖÎö½á¹û
+    //åˆ†æç»“æœ
     res.Calc();
-    //ÏÔÊ¾½á¹û
+    //æ˜¾ç¤ºç»“æœ
     res.show();
 }
-void test2(){
+
+void test2()
+{
   for(int i=0;i<13*4-1;++i){
     for(int j=i+1;j<13*4-1;++j){
       HandCards t;
       t.add(Poker(i));
       t.add(Poker(j));
       Result res = t.Analyze(7);
-      //·ÖÎö½á¹û
+      //åˆ†æç»“æœ
       res.Calc();
-      //ÏÔÊ¾½á¹û
+      //æ˜¾ç¤ºç»“æœ
       res.show();
     }
   }
 }
+
+
 int main()
 {
-   freopen("in.txt","w",stdout);
-   test2();
+    freopen("/Users/rydge/desktop/in.txt","w",stdout);
+    test();
 }

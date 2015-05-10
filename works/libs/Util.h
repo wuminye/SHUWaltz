@@ -42,8 +42,8 @@ cdhs = suit of card (bit turned on based on suit of card)
 b = bit turned on depending on rank of card
 */
 /*
-     Ò»ÕÅÅÆµÄÀàPoker
-     Á½ÖÖ¹¹Ôìº¯Êı
+     ä¸€å¼ ç‰Œçš„ç±»Poker
+     ä¸¤ç§æ„é€ å‡½æ•°
      Poker a(ace,spade);
       Poker a(12);
   */
@@ -173,13 +173,13 @@ public:
  vector<Poker>  ChooseMax( vector<Poker> &data);
 
 /*
-   ÊÖÅÆÀà HandCards
-   ³ÉÔ±º¯Êı£º
-       add(Poker) Ìí¼ÓÆË¿ËÅÆ
-       GetClass() »ñµÃÀà±ğÃû
-       GetUnique() ¹éÀàÇ°ÅÅÃû
-       GetDistinct() ¹éÀàºóÅÅÃû
-       GetClassRank()  ÀàµÄ±àºÅ
+   æ‰‹ç‰Œç±» HandCards
+   æˆå‘˜å‡½æ•°ï¼š
+       add(Poker) æ·»åŠ æ‰‘å…‹ç‰Œ
+       GetClass() è·å¾—ç±»åˆ«å
+       GetUnique() å½’ç±»å‰æ’å
+       GetDistinct() å½’ç±»åæ’å
+       GetClassRank()  ç±»çš„ç¼–å·
 
 */
 class HandCards
