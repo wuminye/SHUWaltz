@@ -52,6 +52,6 @@ void test2()
 
 int main()
 {
-    freopen("/Users/rydge/desktop/in.txt","w",stdout);
+//    freopen("/Users/rydge/desktop/in.txt","w",stdout);
     test();
 }

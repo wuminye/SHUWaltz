@@ -45,7 +45,7 @@ b = bit turned on depending on rank of card
      一张牌的类Poker
      两种构造函数
      Poker a(ace,spade);
-      Poker a(12);
+     Poker a(12);
   */
 class Poker
 {
@@ -62,6 +62,7 @@ public:
         data = data | (((int)num)<<8);
         data = data | prim[(int)num];
     }
+    
     Poker(RankOfPoker num,SuitOfPoker suit)
     {
         data = 0;
@@ -115,6 +116,7 @@ struct _result
         };
         int val[3];
     } _data;
+    
     _result(int a,int b,int c)
     {
         _data.u=a;
@@ -129,10 +131,12 @@ public:
     vector<_result> data;
     vector<double> pc;
     double E;
+    
     void add(int a,int b,int c)
     {
         data.push_back(_result(a,b,c));
     }
+    
     void Calc()
     {
         E=0;
@@ -154,6 +158,7 @@ public:
         for (int i=0; i<9; ++i)
             pc[i] /= (double)data.size();
     }
+    
     void show()
     {
         //printf("============================\n");
@@ -180,8 +185,8 @@ public:
        GetUnique() 归类前排名
        GetDistinct() 归类后排名
        GetClassRank()  类的编号
-
 */
+
 class HandCards
 {
 public:
@@ -216,6 +221,7 @@ public:
             }
             return true;
         }
+        
         int needmodify()
         {
             if (no[0]>=52) return -1;
@@ -236,6 +242,7 @@ public:
             }
             return (int)flag;
         }
+        
         bool _next()
         {
             ++no[no.size()-1];
@@ -301,7 +308,7 @@ public:
     void print()
     {
         int n = data.size();
-        int * hand = new int[n];
+        int *hand = new int[n];
         for (int i=0; i<n; ++i)
             hand[i]=data[i].data;
         print_hand(hand,n);
@@ -374,7 +381,8 @@ void choosedfs(vector<Poker>  &data,int i,int cnt,int tag)
     cifv[i]=false;
     choosedfs(data,i+1,cnt,tag);
 }
- vector<Poker>  ChooseMax( vector<Poker> &data)
+
+ vector<Poker> ChooseMax( vector<Poker> &data)
 {
     Index.clear();
     cifv.clear();
