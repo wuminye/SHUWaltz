@@ -12,8 +12,9 @@ void test()
      
     */
     
-    Poker a(jack,diamond);
-    Poker b(nine,spade);
+//    Poker a(jack,diamond);
+//    Poker b(nine,spade);
+    Poker a(17);
 /*
    手牌类 HandCards
    成员函数：
@@ -24,13 +25,14 @@ void test()
 */
     HandCards t;
     t.add(a);
-    t.add(b);
+    printf("%d",a.GetNum());
+//    t.add(b);
     //凑齐7张牌进行分析
-    Result res = t.Analyze(7);
-    //分析结果
-    res.Calc();
-    //显示结果
-    res.show();
+//    Result res = t.Analyze(7);
+//    //分析结果
+//    res.Calc();
+//    //显示结果
+//    res.show();
 }
 
 void test2()
@@ -49,9 +51,52 @@ void test2()
   }
 }
 
+void calculate_hand_strength()
+{
+    int win = 0, round;
+    vector<Poker> known_cards;
+    HandCards mine,enemy,community;
+    mine.Shuffle(2, known_cards);
+    mine.print();
+
+    HandCards original;
+    original.GetFromOther(mine);
+    
+    for (round=0; round<1000; round++)
+    {
+        community.Shuffle(3, known_cards);
+        community.print();
+        
+        mine.GetFromOther(community);
+        mine.print();
+        
+        enemy.Shuffle(2, known_cards);
+        enemy.GetFromOther(community);
+        enemy.print();
+        
+        if(mine.GetDistinct()<=enemy.GetDistinct())
+            win++;
+        
+        known_cards.clear();
+        known_cards.push_back(mine.GetData()[0]);
+        known_cards.push_back(mine.GetData()[1]);
+        
+        community.clear();
+        enemy.clear();
+        mine.clear();
+        mine.GetFromOther(original);
+    }
+    
+    cout<<"底牌为：";
+    mine.print();
+    cout<<"的大致胜率为"<<(double)win/(double)round;
+
+    
+}
 
 int main()
 {
 //    freopen("/Users/rydge/desktop/in.txt","w",stdout);
-    test();
+//    test();
+    calculate_hand_strength();
 }

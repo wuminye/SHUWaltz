@@ -27,7 +27,7 @@ static string value_str[] =
 };
 
 enum SuitOfPoker
-{spade, heart,  diamond,club};
+{spade,heart,diamond,club};
 enum RankOfPoker
 {deuce,trey,four,five,six,seven,eight,nine,ten,jack,queen,king,ace};
 int prim[] = {2,3,5,7,11,13,17,19,23,29,31,37,41};
@@ -52,8 +52,11 @@ class Poker
 public:
 
     int data;
+    int init_num;
+    
     Poker(int no)
     {
+        init_num = no;
         int num = no%13;
         int suit = no/13;
         data = 0;
@@ -99,10 +102,16 @@ public:
     {
         return GetInfo().first < t.GetInfo().first;
     }
+    
     int GetNum()
     {
         pair<RankOfPoker,SuitOfPoker> p = GetInfo();
         return p.first+p.second*13;
+    }
+    
+    int GetInitNum()
+    {
+        return init_num;
     }
 };
 
@@ -256,6 +265,7 @@ public:
                 data[i]= Poker(no[i-data.size()+N]);
             return true;
         }
+        
         bool next()
         {
             if (!_next())
@@ -268,6 +278,7 @@ public:
             return true;
         }
     };
+    
     vector<Poker> data;
     HandCards(){}
 
@@ -275,10 +286,22 @@ public:
     {
         data =t;
     }
+    
     void add(const Poker & k)
     {
         data.push_back(k);
     }
+    
+    void clear()
+    {
+        data.clear();
+    }
+    
+    vector<Poker> GetData()
+    {
+        return data;
+    }
+    
     int GetDistinct()
     {
         if (data.size()!=5)
@@ -288,6 +311,12 @@ public:
             tem[i] = data[i].data;
         return   eval_5hand(tem);
     }
+    
+    void ShowDistinctValue()
+    {
+        printf("%d",GetDistinct());
+    }
+    
     int GetUnique()
     {
         if (data.size()!=5)
@@ -295,16 +324,55 @@ public:
         int i = GetDistinct()-1;
         return Punique[i];
     }
+    
     string GetClass()
     {
         int i = GetDistinct();
         return value_str[hand_rank(i)];
     }
+    
     int GetClassRank()
     {
         int i = GetDistinct();
         return hand_rank(i);
     }
+    
+    // remove the known cards and form a new 5-hand-cards using the rest.
+    void Shuffle(int num, vector<Poker> &known_pokers)
+    {
+        int i,k,count;
+        bool flag = true;
+        for (count = 0; count < num; )
+        {
+            flag=true;
+            i = (int)(rand() % 52);
+            for (k = 0; k < (int)known_pokers.size(); ++k)
+            {
+                if(i == known_pokers[k].GetInitNum())
+                {
+                    flag = false;
+                    break;
+                }
+            }
+            
+            if(flag)
+            {
+                this->add(Poker(i));
+                known_pokers.push_back(Poker(i));
+                count++;
+            }
+        }
+    }
+    
+    void GetFromOther(HandCards other)
+    {
+        vector<Poker> hand = other.GetData();
+        vector<Poker>::iterator t;
+        for (t=hand.begin(); t!=hand.end(); t++) {
+            this->add(Poker(t->GetNum()));
+        }
+    }
+    
     void print()
     {
         int n = data.size();
@@ -368,7 +436,6 @@ void choosedfs(vector<Poker>  &data,int i,int cnt,int tag)
         int pp = tem.GetDistinct();
         if (pp<mmax)
         {
-
             mmax = pp;
             mt = tem;
         }
@@ -404,6 +471,7 @@ public:
     Init()
     {
         cout<<"System is initiated!"<<endl;
+        srand((int)time(NULL));
         SystemInit();
     }
 } hgsdfjhgyu;
