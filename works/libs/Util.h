@@ -27,7 +27,7 @@ static string value_str[] =
 };
 
 enum SuitOfPoker
-{spade, heart,  diamond,club};
+{spade,heart,diamond,club};
 enum RankOfPoker
 {deuce,trey,four,five,six,seven,eight,nine,ten,jack,queen,king,ace};
 int prim[] = {2,3,5,7,11,13,17,19,23,29,31,37,41};
@@ -42,18 +42,21 @@ cdhs = suit of card (bit turned on based on suit of card)
 b = bit turned on depending on rank of card
 */
 /*
-     Ò»ÕÅÅÆµÄÀàPoker
-     Á½ÖÖ¹¹Ôìº¯Êı
+     ä¸€å¼ ç‰Œçš„ç±»Poker
+     ä¸¤ç§æ„é€ å‡½æ•°
      Poker a(ace,spade);
-      Poker a(12);
+     Poker a(12);
   */
 class Poker
 {
 public:
 
     int data;
+    int init_num;
+    
     Poker(int no)
     {
+        init_num = no;
         int num = no%13;
         int suit = no/13;
         data = 0;
@@ -62,6 +65,7 @@ public:
         data = data | (((int)num)<<8);
         data = data | prim[(int)num];
     }
+    
     Poker(RankOfPoker num,SuitOfPoker suit)
     {
         data = 0;
@@ -98,10 +102,16 @@ public:
     {
         return GetInfo().first < t.GetInfo().first;
     }
+    
     int GetNum()
     {
         pair<RankOfPoker,SuitOfPoker> p = GetInfo();
         return p.first+p.second*13;
+    }
+    
+    int GetInitNum()
+    {
+        return init_num;
     }
 };
 
@@ -115,6 +125,7 @@ struct _result
         };
         int val[3];
     } _data;
+    
     _result(int a,int b,int c)
     {
         _data.u=a;
@@ -129,10 +140,12 @@ public:
     vector<_result> data;
     vector<double> pc;
     double E;
+    
     void add(int a,int b,int c)
     {
         data.push_back(_result(a,b,c));
     }
+    
     void Calc()
     {
         E=0;
@@ -154,6 +167,7 @@ public:
         for (int i=0; i<9; ++i)
             pc[i] /= (double)data.size();
     }
+    
     void show()
     {
         //printf("============================\n");
@@ -173,15 +187,15 @@ public:
  vector<Poker>  ChooseMax( vector<Poker> &data);
 
 /*
-   ÊÖÅÆÀà HandCards
-   ³ÉÔ±º¯Êı£º
-       add(Poker) Ìí¼ÓÆË¿ËÅÆ
-       GetClass() »ñµÃÀà±ğÃû
-       GetUnique() ¹éÀàÇ°ÅÅÃû
-       GetDistinct() ¹éÀàºóÅÅÃû
-       GetClassRank()  ÀàµÄ±àºÅ
-
+   æ‰‹ç‰Œç±» HandCards
+   æˆå‘˜å‡½æ•°ï¼š
+       add(Poker) æ·»åŠ æ‰‘å…‹ç‰Œ
+       GetClass() è·å¾—ç±»åˆ«å
+       GetUnique() å½’ç±»å‰æ’å
+       GetDistinct() å½’ç±»åæ’å
+       GetClassRank()  ç±»çš„ç¼–å·
 */
+
 class HandCards
 {
 public:
@@ -216,6 +230,7 @@ public:
             }
             return true;
         }
+        
         int needmodify()
         {
             if (no[0]>=52) return -1;
@@ -236,6 +251,7 @@ public:
             }
             return (int)flag;
         }
+        
         bool _next()
         {
             ++no[no.size()-1];
@@ -249,6 +265,7 @@ public:
                 data[i]= Poker(no[i-data.size()+N]);
             return true;
         }
+        
         bool next()
         {
             if (!_next())
@@ -261,6 +278,7 @@ public:
             return true;
         }
     };
+    
     vector<Poker> data;
     HandCards(){}
 
@@ -268,10 +286,22 @@ public:
     {
         data =t;
     }
+    
     void add(const Poker & k)
     {
         data.push_back(k);
     }
+    
+    void clear()
+    {
+        data.clear();
+    }
+    
+    vector<Poker> GetData()
+    {
+        return data;
+    }
+    
     int GetDistinct()
     {
         if (data.size()!=5)
@@ -281,6 +311,12 @@ public:
             tem[i] = data[i].data;
         return   eval_5hand(tem);
     }
+    
+    void ShowDistinctValue()
+    {
+        printf("%d",GetDistinct());
+    }
+    
     int GetUnique()
     {
         if (data.size()!=5)
@@ -288,20 +324,59 @@ public:
         int i = GetDistinct()-1;
         return Punique[i];
     }
+    
     string GetClass()
     {
         int i = GetDistinct();
         return value_str[hand_rank(i)];
     }
+    
     int GetClassRank()
     {
         int i = GetDistinct();
         return hand_rank(i);
     }
+    
+    // remove the known cards and form a new 5-hand-cards using the rest.
+    void Shuffle(int num, vector<Poker> &known_pokers)
+    {
+        int i,k,count;
+        bool flag = true;
+        for (count = 0; count < num; )
+        {
+            flag=true;
+            i = (int)(rand() % 52);
+            for (k = 0; k < (int)known_pokers.size(); ++k)
+            {
+                if(i == known_pokers[k].GetInitNum())
+                {
+                    flag = false;
+                    break;
+                }
+            }
+            
+            if(flag)
+            {
+                this->add(Poker(i));
+                known_pokers.push_back(Poker(i));
+                count++;
+            }
+        }
+    }
+    
+    void GetFromOther(HandCards other)
+    {
+        vector<Poker> hand = other.GetData();
+        vector<Poker>::iterator t;
+        for (t=hand.begin(); t!=hand.end(); t++) {
+            this->add(Poker(t->GetNum()));
+        }
+    }
+    
     void print()
     {
         int n = data.size();
-        int * hand = new int[n];
+        int *hand = new int[n];
         for (int i=0; i<n; ++i)
             hand[i]=data[i].data;
         print_hand(hand,n);
@@ -361,7 +436,6 @@ void choosedfs(vector<Poker>  &data,int i,int cnt,int tag)
         int pp = tem.GetDistinct();
         if (pp<mmax)
         {
-
             mmax = pp;
             mt = tem;
         }
@@ -374,7 +448,8 @@ void choosedfs(vector<Poker>  &data,int i,int cnt,int tag)
     cifv[i]=false;
     choosedfs(data,i+1,cnt,tag);
 }
- vector<Poker>  ChooseMax( vector<Poker> &data)
+
+ vector<Poker> ChooseMax( vector<Poker> &data)
 {
     Index.clear();
     cifv.clear();
@@ -396,6 +471,7 @@ public:
     Init()
     {
         cout<<"System is initiated!"<<endl;
+        srand((int)time(NULL));
         SystemInit();
     }
 } hgsdfjhgyu;
