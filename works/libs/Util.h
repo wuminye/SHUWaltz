@@ -53,7 +53,7 @@ public:
 
     int data;
     int init_num;
-    
+
     Poker(int no)
     {
         init_num = no;
@@ -65,7 +65,7 @@ public:
         data = data | (((int)num)<<8);
         data = data | prim[(int)num];
     }
-    
+
     Poker(RankOfPoker num,SuitOfPoker suit)
     {
         data = 0;
@@ -73,6 +73,7 @@ public:
         data = data | ((1<<((int)suit))<<12);
         data = data | (((int)num)<<8);
         data = data | prim[(int)num];
+        init_num = GetNum();
     }
 
     pair<RankOfPoker,SuitOfPoker> GetInfo() const
@@ -102,13 +103,13 @@ public:
     {
         return GetInfo().first < t.GetInfo().first;
     }
-    
+
     int GetNum()
     {
         pair<RankOfPoker,SuitOfPoker> p = GetInfo();
         return p.first+p.second*13;
     }
-    
+
     int GetInitNum()
     {
         return init_num;
@@ -125,7 +126,7 @@ struct _result
         };
         int val[3];
     } _data;
-    
+
     _result(int a,int b,int c)
     {
         _data.u=a;
@@ -140,12 +141,12 @@ public:
     vector<_result> data;
     vector<double> pc;
     double E;
-    
+
     void add(int a,int b,int c)
     {
         data.push_back(_result(a,b,c));
     }
-    
+
     void Calc()
     {
         E=0;
@@ -167,7 +168,7 @@ public:
         for (int i=0; i<9; ++i)
             pc[i] /= (double)data.size();
     }
-    
+
     void show()
     {
         //printf("============================\n");
@@ -230,7 +231,7 @@ public:
             }
             return true;
         }
-        
+
         int needmodify()
         {
             if (no[0]>=52) return -1;
@@ -251,7 +252,7 @@ public:
             }
             return (int)flag;
         }
-        
+
         bool _next()
         {
             ++no[no.size()-1];
@@ -265,7 +266,7 @@ public:
                 data[i]= Poker(no[i-data.size()+N]);
             return true;
         }
-        
+
         bool next()
         {
             if (!_next())
@@ -278,7 +279,7 @@ public:
             return true;
         }
     };
-    
+
     vector<Poker> data;
     HandCards(){}
 
@@ -286,22 +287,22 @@ public:
     {
         data =t;
     }
-    
+
     void add(const Poker & k)
     {
         data.push_back(k);
     }
-    
+
     void clear()
     {
         data.clear();
     }
-    
+
     vector<Poker> GetData()
     {
         return data;
     }
-    
+
     int GetDistinct()
     {
         if (data.size()!=5)
@@ -311,12 +312,12 @@ public:
             tem[i] = data[i].data;
         return   eval_5hand(tem);
     }
-    
+
     void ShowDistinctValue()
     {
         printf("%d",GetDistinct());
     }
-    
+
     int GetUnique()
     {
         if (data.size()!=5)
@@ -324,19 +325,19 @@ public:
         int i = GetDistinct()-1;
         return Punique[i];
     }
-    
+
     string GetClass()
     {
         int i = GetDistinct();
         return value_str[hand_rank(i)];
     }
-    
+
     int GetClassRank()
     {
         int i = GetDistinct();
         return hand_rank(i);
     }
-    
+
     // remove the known cards and form a new 5-hand-cards using the rest.
     void Shuffle(int num, vector<Poker> &known_pokers)
     {
@@ -354,7 +355,7 @@ public:
                     break;
                 }
             }
-            
+
             if(flag)
             {
                 this->add(Poker(i));
@@ -363,7 +364,7 @@ public:
             }
         }
     }
-    
+
     void GetFromOther(HandCards other)
     {
         vector<Poker> hand = other.GetData();
@@ -372,7 +373,7 @@ public:
             this->add(Poker(t->GetNum()));
         }
     }
-    
+
     void print()
     {
         int n = data.size();
