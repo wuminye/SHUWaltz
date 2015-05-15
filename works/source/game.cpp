@@ -1,5 +1,10 @@
 ﻿#include "Util.h"
-
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <string.h>
+#include <unistd.h>
 void test()
 {
     /*
@@ -79,10 +84,81 @@ void test3()
 
     delete res;
 }
-
-int main()
+bool process_message(int socket_id, int size,const char* msg){
+  printf("收到消息: %s\n",msg);
+  if(strstr(msg, "game-over")!=NULL){//本场比赛结束
+    return false;
+  }
+  if(strstr(msg, "inquire/")){
+    const char* rep_msg = "all_in";
+    send(socket_id,rep_msg,(int)strlen(rep_msg)+1,0);
+  }
+  return true;
+}
+int main(int argc, char *argv[])
 {
+  if(argc!=6){
+    printf("参数个数错误\n");
+    return -1;
+  }
+  //根据参数提取信息
+  in_addr_t server_ip = inet_addr(argv[1]);
+  in_port_t server_port = atoi(argv[2]);
+  in_addr_t my_ip = inet_addr(argv[3]);
+  in_port_t my_port = atoi(argv[4]);
+  int my_id = atoi(argv[5]);
+
+  char *my_name = strrchr(argv[0],'/');
+  if(my_name==NULL){
+    my_name = argv[0];
+  }
+  else{
+    my_name++;
+  }
+
+  int socket_id = socket(AF_INET,SOCK_STREAM,0);
+
+  sockaddr_in my_addr;
+  my_addr.sin_family=AF_INET; //设置为IP通信
+  my_addr.sin_addr.s_addr=my_ip;//设置ip
+  my_addr.sin_port=htons(my_port);//设置端口
+
+  long flag=1;
+  setsockopt(socket_id,SOL_SOCKET,SO_REUSERADDR,(char *)&flag,sizeof(flag));
+  if(bind(socket_id,(sockaddr*)&my_addr,sizeof(sockaddr))<0){
+    printf("绑定失败\n");
+    return -1;
+  }
+
+  sockaddr_in server_addr;
+  server_addr.sin_family=AF_INET; //设置为IP通信
+  server_addr.sin_addr.s_addr=server_ip;//设置ip
+  server_addr.sin_port=htons(server_port);//设置端口
+
+  while(connect(socket_id, (sockaddr*)&server_addr, sizeof(sockaddr))!=0){
+    usleep(100*1000);//挂起100ms
+  }
+  printf("连接服务器成功\n");
+
+  char reg_msg[50]="";
+  snprintf(reg_msg,sizeof(reg_msg)-1, "reg: %d %s \n",my_id,my_name);
+  printf("发送注册消息%s",reg_msg);
+  send(socket_id,reg_msg,(int)strlen(reg_msg)+1,0);
+
+  while(true){
+    char buffer[1024]={"\0"};
+    int recv_size = recv(socket_id,buffer,sizeof(buffer)-1,0);
+    if(recv_size>0){
+      if(!process_message(socket_id,recv_size,buffer)){
+        break;
+      }
+    }
+  }
+  close(socket_id);
+
+
+
 //    freopen("/Users/rydge/desktop/in.txt","w",stdout);
 //    test();
-    test3();
+    //test3();
 }
