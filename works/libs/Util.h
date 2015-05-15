@@ -2,7 +2,7 @@
 #define UTIL_H_INCLUDED
 #include "PokerUtil.h"
 
-
+#include <ctime>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -171,17 +171,17 @@ public:
 
     void show()
     {
-        //printf("============================\n");
+        printf("============================\n");
         for (int i=0; i<9; ++i)
         {
-            //printf("%d.",i+1);
-            //cout<<value_str[i+1]<<"      \t";
-            //printf("%f%%\n",pc[i]);
-            printf ("%f ",pc[i]);
+            printf("%d.",i+1);
+            cout<<value_str[i+1]<<"      \t";
+            printf("%f%%\n",pc[i]);
+            //printf ("%f ",pc[i]);
         }
-        //printf("\nE:%f%%\n",E);
-        printf("%f\n",E);
-        //printf("============================\n");
+        printf("\nE:%f%%\n",E);
+     //   printf("%f\n",E);
+        printf("============================\n");
     }
 };
 
@@ -303,7 +303,7 @@ public:
         return data;
     }
 
-    int GetDistinct()
+    int GetDistinct() const
     {
         if (data.size()!=5)
             return -1;
@@ -313,12 +313,12 @@ public:
         return   eval_5hand(tem);
     }
 
-    void ShowDistinctValue()
+    void ShowDistinctValue() const
     {
         printf("%d",GetDistinct());
     }
 
-    int GetUnique()
+    int GetUnique() const
     {
         if (data.size()!=5)
             return -1;
@@ -326,13 +326,13 @@ public:
         return Punique[i];
     }
 
-    string GetClass()
+    string GetClass() const
     {
         int i = GetDistinct();
         return value_str[hand_rank(i)];
     }
 
-    int GetClassRank()
+    int GetClassRank() const
     {
         int i = GetDistinct();
         return hand_rank(i);
@@ -364,7 +364,7 @@ public:
             }
         }
     }
-
+    /* 将other中的牌添加到 当前手牌中 */
     void GetFromOther(HandCards other)
     {
         vector<Poker> hand = other.GetData();
@@ -373,7 +373,7 @@ public:
             this->add(Poker(t->GetNum()));
         }
     }
-
+   /* 打印手牌 */
     void print()
     {
         int n = data.size();
@@ -383,6 +383,18 @@ public:
         print_hand(hand,n);
         printf("\n");
         delete []hand;
+    }
+
+    // 但手牌大于等于 5张时保留最大的组合
+    void CalcMax()
+    {
+       if (data.size()<5)
+       {
+             cout<<"error! The number of handcards must be more than 4!"<<endl;
+             exit(-1);
+       }
+
+       data = ChooseMax(data);
     }
 
     Result Analyze(int k = 5 )
@@ -412,6 +424,18 @@ public:
         }
         //printf("%d\n",nn);
         return res;
+    }
+
+    bool operator<(const HandCards & t) const
+    {
+       if (data.size()!=5 || t.data.size()!=5)
+       {
+             cout<<"error! The number of handcards must be equal to 5!"<<endl;
+             exit(-1);
+       }
+
+       return GetDistinct()>t.GetDistinct();
+
     }
 
 };
@@ -462,6 +486,87 @@ void choosedfs(vector<Poker>  &data,int i,int cnt,int tag)
     mmax =10000;
     choosedfs(data,0,0,3);
     return mt.data;
+}
+
+/*
+    original 自己原始手牌
+    community 公共牌，数量从 3 到 5 张
+    N  要凑齐几张牌来比较， 例如 2张手牌 + 3 张公共牌 需要再随机两张牌凑齐7张，所以N=7
+    N_enemy 对手的数量
+    tar_round  随机取样的次数
+    Result 用于保存自己手牌的类型统计结果
+
+Return:
+    预期排名，数值越小越好
+*/
+double calculate_hand_strength(HandCards original,
+                               HandCards community,
+                               int N,
+                               int N_enemy,
+                               int tar_round,
+                               Result * _res=NULL
+                               )
+{
+     srand((int)time(NULL));
+     vector<Poker> known_cards,temp;
+
+     // 计算已知牌列表
+     known_cards = original.GetData();
+     for (int i=0; i<(int)community.data.size(); ++i)
+        known_cards.push_back(community.data[i]);
+
+     temp = known_cards;  //列表备份
+
+     int win = 0;
+      for (int round=0; round<tar_round; round++)
+      {
+          HandCards mine;
+
+          if (community.GetData().size()==0)
+          {
+              community.Shuffle(3, known_cards);
+          }
+
+          vector<HandCards> enemy(N_enemy,community);
+
+
+          mine.data = known_cards;
+
+
+          mine.Shuffle(N - (int)known_cards.size(), known_cards);
+          mine.CalcMax();
+
+          if (_res)
+          {
+              int a = mine.GetUnique();
+              int b = mine.GetDistinct();
+              int c = mine.GetClassRank();
+              _res->add(a,b,c);
+          }
+
+       //   mine.print();
+          for (int j=0;j<N_enemy;++j)
+          {
+              enemy[j].Shuffle(N - (int)enemy[j].GetData().size(), known_cards);
+              enemy[j].CalcMax();
+
+          }
+          sort(enemy.begin(),enemy.end());
+
+         // enemy.print();
+         int p = N_enemy+1;
+         for (int j=0;j<N_enemy;++j)
+         {
+            if  (mine<enemy[N_enemy-j-1]) continue;
+            p = j+1;
+            break;
+         }
+          win+=p;
+          known_cards = temp;
+      }
+
+    return (double)win/tar_round;
+
 }
 
 

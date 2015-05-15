@@ -1,4 +1,4 @@
-#include "Util.h"
+﻿#include "Util.h"
 
 void test()
 {
@@ -9,9 +9,9 @@ void test()
         Poker a(12);
      {spade,heart,diamond,club};
      {deuce,trey,four,five,six,seven,eight,nine,ten,jack,queen,king,ace};
-     
+
     */
-    
+
 //    Poker a(jack,diamond);
 //    Poker b(nine,spade);
     Poker a(17);
@@ -51,52 +51,36 @@ void test2()
   }
 }
 
-void calculate_hand_strength()
+// by wuminye
+void test3()
 {
-    int win = 0, round;
+    int N_enemy = 7;
     vector<Poker> known_cards;
-    HandCards mine,enemy,community;
+    HandCards mine,community;
     mine.Shuffle(2, known_cards);
+    cout<<"手牌:";
     mine.print();
+    community.Shuffle(3, known_cards);
 
-    HandCards original;
-    original.GetFromOther(mine);
-    
-    for (round=0; round<1000; round++)
-    {
-        community.Shuffle(3, known_cards);
-        community.print();
-        
-        mine.GetFromOther(community);
-        mine.print();
-        
-        enemy.Shuffle(2, known_cards);
-        enemy.GetFromOther(community);
-        enemy.print();
-        
-        if(mine.GetDistinct()<=enemy.GetDistinct())
-            win++;
-        
-        known_cards.clear();
-        known_cards.push_back(mine.GetData()[0]);
-        known_cards.push_back(mine.GetData()[1]);
-        
-        community.clear();
-        enemy.clear();
-        mine.clear();
-        mine.GetFromOther(original);
-    }
-    
-    cout<<"底牌为：";
-    mine.print();
-    cout<<"的大致胜率为"<<(double)win/(double)round;
+    Result * res = new Result();
 
-    
+    cout<<"预期排名:"<<calculate_hand_strength(mine,community,7,N_enemy,2000,res)<<"/"<<N_enemy+1<<endl;
+
+    res->Calc();
+    cout<<endl<<"预期估计类型概率："<<endl;
+    res->show();
+    mine.GetFromOther(community);
+
+    Result res2 = mine.Analyze(7);
+    res2.Calc();
+    cout<<"准确统计类型概率："<<endl;
+    res2.show();
+    delete res;
 }
 
 int main()
 {
 //    freopen("/Users/rydge/desktop/in.txt","w",stdout);
 //    test();
-    calculate_hand_strength();
+    test3();
 }
