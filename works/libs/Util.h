@@ -27,7 +27,7 @@ static string value_str[] =
 };
 
 enum SuitOfPoker
-{spade,heart,diamond,club};
+{SPADES,HEARTS,DIAMONDS,CLUBS};
 enum RankOfPoker
 {deuce,trey,four,five,six,seven,eight,nine,ten,jack,queen,king,ace};
 int prim[] = {2,3,5,7,11,13,17,19,23,29,31,37,41};
@@ -66,7 +66,7 @@ public:
         data = data | prim[(int)num];
     }
 
-    Poker(RankOfPoker num,SuitOfPoker suit)
+    Poker(SuitOfPoker suit, RankOfPoker num)
     {
         data = 0;
         data = data | ((1<<((int)num))<<16);
@@ -358,7 +358,7 @@ public:
 
             if(flag)
             {
-                this->add(Poker(i));
+                add(Poker(i));
                 known_pokers.push_back(Poker(i));
                 count++;
             }
@@ -370,7 +370,7 @@ public:
         vector<Poker> hand = other.GetData();
         vector<Poker>::iterator t;
         for (t=hand.begin(); t!=hand.end(); t++) {
-            this->add(Poker(t->GetNum()));
+            add(Poker(t->GetNum()));
         }
     }
    /* 打印手牌 */
@@ -435,7 +435,161 @@ public:
        }
 
        return GetDistinct()>t.GetDistinct();
+    }
+    
+    bool operator>(const HandCards & t) const
+    {
+        if (data.size()!=5 || t.data.size()!=5)
+        {
+            cout<<"error! The number of handcards must be equal to 5!"<<endl;
+            exit(-1);
+        }
+        
+        return GetDistinct()<t.GetDistinct();
+    }
+    
+    bool operator>=(const HandCards & t) const
+    {
+        if (data.size()!=5 || t.data.size()!=5)
+        {
+            cout<<"error! The number of handcards must be equal to 5!"<<endl;
+            exit(-1);
+        }
+        
+        return GetDistinct()<=t.GetDistinct();
+    }
 
+};
+
+class Board // 游戏牌局
+{
+public:
+    int pot; //注池总量
+    int players; //玩家人数
+    HandCards mine; //自己的手牌
+    HandCards community; //当前公共牌的情况
+    HandCards all; //自己手牌+公共牌
+    
+    Board(){}
+    
+    void update_pot(int new_pot)
+    {
+        pot = new_pot;
+    }
+    
+    int get_pot()
+    {
+        return pot;
+    }
+    
+    void update_players(int new_players)
+    {
+        players=new_players;
+    }
+    
+    void add_community(SuitOfPoker color, RankOfPoker point)
+    {
+        community.add(Poker(color,point));
+        all.add(Poker(color, point));
+    }
+    
+    void add_community(int no)
+    {
+        community.add(Poker(no));
+        all.add(Poker(no));
+    }
+    
+    HandCards get_community()
+    {
+        return community;
+    }
+    
+    void add_mine(SuitOfPoker color, RankOfPoker point)
+    {
+        mine.add(Poker(color, point));
+        all.add(Poker(color, point));
+    }
+    
+    void add_mine(int no)
+    {
+        mine.add(Poker(no));
+        all.add(Poker(no));
+    }
+    
+    HandCards get_mine()
+    {
+        return mine;
+    }
+    
+    
+    /*
+     计算Hand Strength (HS)
+     根据不同时期公共牌(0,3,4,5)的具体情况，补齐公共牌使所有已知牌(手牌2+已知公共牌+剩余公共牌)都是7张
+     适用于翻牌前以及翻牌后3、4、5张公共牌的全部情况
+     只利用一个对手即可，计算自己的5张牌>=对手的次数
+     任何时期根据仅有的自己底牌和公共牌情况，随机取样对手的底牌，得到HS
+     */
+    double get_hand_strength()
+    {
+        int win = 0, round;
+        vector<Poker> known_cards;
+        known_cards = all.GetData();
+        HandCards enemy;
+        
+        HandCards copy_community;
+        copy_community.GetFromOther(community);//现有公共牌
+        
+        HandCards copy_mine;
+        copy_mine.GetFromOther(mine);//底牌
+        
+        int missing_community= 5 - community.GetData().size();//还需补足的剩余公共牌个数，可以取5, 2, 1, 0
+        
+        for (round=0; round<1000; round++)
+        {
+            copy_community.Shuffle(missing_community, known_cards);
+//            copy_community.print();
+            
+            copy_mine.GetFromOther(copy_community);
+//            copy_mine.print();
+            copy_mine.CalcMax();
+//            copy_mine.print();
+            
+            enemy.Shuffle(2, known_cards);
+            enemy.GetFromOther(copy_community);
+//            enemy.print();
+            enemy.CalcMax();
+//            enemy.print();
+            
+            if(copy_mine >= enemy)
+                win++;
+            
+            known_cards.clear();
+            known_cards=all.GetData();
+            
+            copy_mine.clear();
+            copy_mine.GetFromOther(mine);
+            
+            copy_community.clear();
+            copy_community.GetFromOther(community);
+            
+            enemy.clear();
+        }
+        
+        double HS=(double)win/(double)round;
+        cout<<"Hand Strength: "<<HS<<endl;
+        return HS;
+    }
+    
+    double calculate_PotOdds(int my_bet)    //计算赔率Pot odds
+    {
+        return (double)my_bet / (double)(get_pot() + my_bet);
+    }
+    
+    double calculate_RR(int my_bet)     //计算回报率RR
+    {
+        double rr = get_hand_strength() / calculate_PotOdds(my_bet);
+        cout<<"Rate of Return (RR): "<<rr<<endl;
+        return rr;
     }
 
 };
@@ -504,7 +658,7 @@ double calculate_hand_strength(HandCards original,
                                int N,
                                int N_enemy,
                                int tar_round,
-                               Result * _res=NULL
+                               Result *_res = NULL
                                )
 {
      srand((int)time(NULL));
@@ -516,9 +670,9 @@ double calculate_hand_strength(HandCards original,
         known_cards.push_back(community.data[i]);
 
      temp = known_cards;  //列表备份
-
      int win = 0;
-      for (int round=0; round<tar_round; round++)
+    
+      for (int round=0; round < tar_round; round++)
       {
           HandCards mine;
 
@@ -529,10 +683,7 @@ double calculate_hand_strength(HandCards original,
 
           vector<HandCards> enemy(N_enemy,community);
 
-
           mine.data = known_cards;
-
-
           mine.Shuffle(N - (int)known_cards.size(), known_cards);
           mine.CalcMax();
 
@@ -544,31 +695,32 @@ double calculate_hand_strength(HandCards original,
               _res->add(a,b,c);
           }
 
-       //   mine.print();
+//          mine.print();
           for (int j=0;j<N_enemy;++j)
           {
               enemy[j].Shuffle(N - (int)enemy[j].GetData().size(), known_cards);
               enemy[j].CalcMax();
-
           }
+          
           sort(enemy.begin(),enemy.end());
 
-         // enemy.print();
-         int p = N_enemy+1;
+//          enemy.print();
+         int p = N_enemy + 1;
          for (int j=0;j<N_enemy;++j)
          {
-            if  (mine<enemy[N_enemy-j-1]) continue;
+            if  (mine < enemy[N_enemy-j-1])
+                continue;
             p = j+1;
             break;
          }
-          win+=p;
+          
+          win += p;
           known_cards = temp;
       }
 
     return (double)win/tar_round;
 
 }
-
 
 class Init
 {
