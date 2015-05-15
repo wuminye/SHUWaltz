@@ -1,14 +1,14 @@
-#include "Util.h"
+﻿#include "Util.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
-<<<<<<< HEAD
+
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-=======
+
 #include <sys/types.h>
 #include <sys/socket.h>
->>>>>>> da1a65331e5e0fb516665e2d9d499b45c0b09161
+
 #include <unistd.h>
 #include <string.h>
 
@@ -95,7 +95,7 @@ void test3()
 
     delete res;
 }
-<<<<<<< HEAD
+
 bool process_message(int socket_id, int size,const char* msg){
   printf("get message from server:%s\n",msg);
   if(strstr(msg, "game-over")!=NULL){//本场比赛结束
@@ -106,7 +106,7 @@ bool process_message(int socket_id, int size,const char* msg){
     send(socket_id,rep_msg,(int)strlen(rep_msg)+1,0);
   }
   return true;
-=======
+}
 
 //翻牌前
 void test4()
@@ -121,36 +121,17 @@ void test4()
     
     board.mine.clear();
     board.community.clear();
->>>>>>> da1a65331e5e0fb516665e2d9d499b45c0b09161
+
 }
 
 //三张公共牌
 void test5()
 {
-<<<<<<< HEAD
-  if(argc!=6){
-    printf("Usage: ./%s server_ip server_port my_ip my_port my_id\n",argv[0]);
-    return -1;
-  }
-  //根据参数提取信息
-  in_addr_t server_ip = inet_addr(argv[1]);
-  in_port_t server_port = atoi(argv[2]);
-  in_addr_t my_ip = inet_addr(argv[3]);
-  in_port_t my_port = atoi(argv[4]);
-  int my_id = atoi(argv[5]);
 
-  char *my_name = strrchr(argv[0],'/');
-  if(my_name==NULL){
-    my_name = argv[0];
-  }
-  else{
-    my_name++;
-  }
-=======
     
     cout<<"==========翻牌局测试=========="<<endl;
     vector<Poker> known_cards;
->>>>>>> da1a65331e5e0fb516665e2d9d499b45c0b09161
+
 
     board.mine.Shuffle(2, known_cards);
     cout<<"底牌:"<<endl;
@@ -165,18 +146,6 @@ void test5()
     board.community.clear();
 }
 
-<<<<<<< HEAD
-  sockaddr_in my_addr;
-  my_addr.sin_family=AF_INET; //设置为IP通信
-  my_addr.sin_addr.s_addr=my_ip;//设置ip
-  my_addr.sin_port=htons(my_port);//设置端口
-  long flag=1;
-  setsockopt(socket_id,SOL_SOCKET,SO_REUSEADDR,(char *)&flag,sizeof(flag));
-  if(bind(socket_id,(sockaddr*)&my_addr,sizeof(sockaddr))<0){
-    printf("bind fail.\n");
-    return -1;
-  }
-=======
 //四张公共牌
 void test6()
 {
@@ -214,29 +183,11 @@ void test7()
     
     board.mine.clear();
     board.community.clear();
->>>>>>> da1a65331e5e0fb516665e2d9d499b45c0b09161
+
 
 }
 
-<<<<<<< HEAD
-  while(connect(socket_id, (sockaddr*)&server_addr, sizeof(sockaddr))!=0){
-    usleep(100*1000);//挂起100ms
-  }
-  printf("connect server success.\n");
 
-  char reg_msg[50]="";
-  snprintf(reg_msg,sizeof(reg_msg)-1, "reg: %d %s \n",my_id,my_name);
-  printf("send register message%s",reg_msg);
-  send(socket_id,reg_msg,(int)strlen(reg_msg)+1,0);
-
-  while(true){
-    char buffer[1024]={"\0"};
-    int recv_size = recv(socket_id,buffer,sizeof(buffer)-1,0);
-    if(recv_size>0){
-      if(!process_message(socket_id,recv_size,buffer)){
-        break;
-      }
-=======
 /*
  FOLD/CALL/RAISE DECISION
  If RR < 0.8 then 95% fold, 0 % call, 5%  raise (bluff)
@@ -255,7 +206,7 @@ void FCR_decision(int my_bet)//TO-Do
     else if(rr<1.0)
     {
         
->>>>>>> da1a65331e5e0fb516665e2d9d499b45c0b09161
+
     }
     else if(rr<1.3)
     {
