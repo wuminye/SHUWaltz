@@ -60,11 +60,12 @@ void test3()
     mine.Shuffle(2, known_cards);
     cout<<"手牌:";
     mine.print();
-    community.Shuffle(3, known_cards);
-
+   // community.Shuffle(3, known_cards);
+    cout<<"公共牌:";
+    community.print();
     Result * res = new Result();
 
-    cout<<"预期排名:"<<calculate_hand_strength(mine,community,7,N_enemy,2000,res)<<"/"<<N_enemy+1<<endl;
+    cout<<"预期排名:"<<calculate_hand_strength(mine,community,7,N_enemy,3000,res)<<"/"<<N_enemy+1<<endl;
 
     res->Calc();
     cout<<endl<<"预期估计类型概率："<<endl;
@@ -75,6 +76,7 @@ void test3()
     res2.Calc();
     cout<<"准确统计类型概率："<<endl;
     res2.show();
+
     delete res;
 }
 
