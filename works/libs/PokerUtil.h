@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "arrays.h"
+
 #define	STRAIGHT_FLUSH	1
 #define	FOUR_OF_A_KIND	2
 #define	FULL_HOUSE      3
