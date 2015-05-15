@@ -87,7 +87,7 @@ void test3()
     delete res;
 }
 bool process_message(int socket_id, int size,const char* msg){
-  printf("收到消息: %s\n",msg);
+  printf("get message from server:%s\n",msg);
   if(strstr(msg, "game-over")!=NULL){//本场比赛结束
     return false;
   }
@@ -100,7 +100,7 @@ bool process_message(int socket_id, int size,const char* msg){
 int main(int argc, char *argv[])
 {
   if(argc!=6){
-    printf("参数个数错误\n");
+    printf("Usage: ./%s server_ip server_port my_ip my_port my_id\n",argv[0]);
     return -1;
   }
   //根据参数提取信息
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
   long flag=1;
   setsockopt(socket_id,SOL_SOCKET,SO_REUSEADDR,(char *)&flag,sizeof(flag));
   if(bind(socket_id,(sockaddr*)&my_addr,sizeof(sockaddr))<0){
-    printf("绑定失败\n");
+    printf("bind fail.\n");
     return -1;
   }
 
@@ -139,11 +139,11 @@ int main(int argc, char *argv[])
   while(connect(socket_id, (sockaddr*)&server_addr, sizeof(sockaddr))!=0){
     usleep(100*1000);//挂起100ms
   }
-  printf("连接服务器成功\n");
+  printf("connect server success.\n");
 
   char reg_msg[50]="";
   snprintf(reg_msg,sizeof(reg_msg)-1, "reg: %d %s \n",my_id,my_name);
-  printf("发送注册消息%s",reg_msg);
+  printf("send register message%s",reg_msg);
   send(socket_id,reg_msg,(int)strlen(reg_msg)+1,0);
 
   while(true){
