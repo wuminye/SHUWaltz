@@ -3,6 +3,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 void test()
@@ -122,9 +124,8 @@ int main(int argc, char *argv[])
   my_addr.sin_family=AF_INET; //设置为IP通信
   my_addr.sin_addr.s_addr=my_ip;//设置ip
   my_addr.sin_port=htons(my_port);//设置端口
-
   long flag=1;
-  setsockopt(socket_id,SOL_SOCKET,SO_REUSERADDR,(char *)&flag,sizeof(flag));
+  setsockopt(socket_id,SOL_SOCKET,SO_REUSEADDR,(char *)&flag,sizeof(flag));
   if(bind(socket_id,(sockaddr*)&my_addr,sizeof(sockaddr))<0){
     printf("绑定失败\n");
     return -1;
