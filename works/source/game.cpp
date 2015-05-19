@@ -254,7 +254,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
   {
     return false;
   }
-  if (strstr(msg,"seat/")){
+  else if (strstr(msg,"seat/")){
     //位置消息，表示开始新的一局，清空所有vector
     //clearn board
     board.clearn();
@@ -291,7 +291,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
       }
     }
   }
-  if(strstr(msg,"blind")){
+  else if(strstr(msg,"blind/")){
     /*盲注消息
     blind/ eol
     pid: bet(1 or 2 lines)
@@ -300,11 +300,12 @@ bool process_sever_message(int socket_id, int size, const char* msg){
     int pid;
     int blind_bet;
     for(int i=0;i<msg_lines;++i){
+      if(splited_msg[i].find("blind")!=std::string::npos)continue;
       std::sscanf(splited_msg[i].c_str(),"%d:%d",&pid,&blind_bet);
       printf("user %d blind %d\n",pid,blind_bet);
     }
   }
-  if(strstr(msg, "inquire/"))
+  else if(strstr(msg, "inquire/"))
   {
       //得到当前底池的总金额，具体值根据server
       board.update_pot(1000);
@@ -333,8 +334,17 @@ bool process_sever_message(int socket_id, int size, const char* msg){
      /flop eol
 
      */
-    if(strstr(msg, "flop/"))
+    else if(strstr(msg, "flop/"))
     {
+      char color[3][20];
+      char point[3][20];
+      int num=0;
+      for(int i=0;i<msg_lines;++i){
+        if(splited_msg[i].find("flop")!=std::string::npos)continue;
+        std::sscanf(splited_msg[i].c_str(),"%s %s",color[num],point[num]);
+        printf("get flop card with color:%s and point:%s\n",color[num],point[num]);
+        num++;
+      }
         //添加三张公牌信息，具体值根据server来定
         board.add_community(DIAMONDS,ace);
         board.add_community(DIAMONDS, ace);
@@ -350,13 +360,14 @@ bool process_sever_message(int socket_id, int size, const char* msg){
      /hold eol
 
      */
-    if(strstr(msg, "hold/"))
+    else if(strstr(msg, "hold/"))
     {
       char color[20];
-      int point;
+      char point[20];
       for(int i=0;i<msg_lines;++i){
-        std::sscanf(splited_msg[i].c_str(),"%s %d",color,&point);
-        printf("get hold cards with color:%s and point：%d\n",color,point);
+        if(splited_msg[i].find("hold")!=std::string::npos)continue;
+        std::sscanf(splited_msg[i].c_str(),"%s %s",color,point);
+        printf("get hold cards with color:%s and point:%s\n",color,point);
       }
       //初始化两张底牌信息，具体值根据server
       board.add_mine(SPADES, ace);
@@ -371,13 +382,14 @@ bool process_sever_message(int socket_id, int size, const char* msg){
      /turn eol
 
      */
-    if(strstr(msg,"turn/"))
+    else if(strstr(msg,"turn/"))
     {
       char color[20];
-      int point;
+      char point[20];
       for(int i=0;i<msg_lines;++i){
-        std::sscanf(splited_msg[i].c_str(),"%s %d",color,&point);
-        printf("get turn card with color:%s and point：%d\n",color,point);
+        if(splited_msg[i].find("turn")!=std::string::npos)continue;
+        std::sscanf(splited_msg[i].c_str(),"%s %s",color,point);
+        printf("get turn card with color:%s and point:%s\n",color,point);
       }
       board.add_community(DIAMONDS,ace);
     }
@@ -390,13 +402,14 @@ bool process_sever_message(int socket_id, int size, const char* msg){
      /river eol
 
      */
-    if(strstr(msg, "river/"))
+    else if(strstr(msg, "river/"))
     {
       char color[20];
       int point;
       for(int i=0;i<msg_lines;++i){
+        if(splited_msg[i].find("river")!=std::string::npos)continue;
         std::sscanf(splited_msg[i].c_str(),"%s %d",color,&point);
-        printf("get river card with color:%s and point：%d\n",color,point);
+        printf("get river card with color:%s and point:%d\n",color,point);
       }
       board.add_community(DIAMONDS,ace);
     }
@@ -406,10 +419,11 @@ bool process_sever_message(int socket_id, int size, const char* msg){
     pid: num eol
     /pot-win eol
     */
-    if(strstr(msg,"pot-win/")){
+    else if(strstr(msg,"pot-win/")){
       int pid;
       int win_money;
       for(int i=0;i<msg_lines;++i){
+        if(splited_msg[i].find("pot-win")!=std::string::npos)continue;
         std::sscanf(splited_msg[i].c_str(),"%d: %d",&pid,&win_money);
         printf("user %d win %d\n",pid,win_money);
       }
@@ -423,35 +437,39 @@ bool process_sever_message(int socket_id, int size, const char* msg){
     rank: pid color point color point nut_hand eol
     /showdown eol
     */
-    if(strstr(msg,"showdown/")){
+    else if(strstr(msg,"showdown/")){
       std::string::size_type pos;
       string ext_msg;
       int pid;
       int rank;
       char color[20];
-      int point;
+      char point[20];
       char color2[20];
-      int point2;
+      char point2[20];
       char nut_hand[20];//与公共牌组成最大的手牌类型
       bool in_common=false;
       for(int i=0;i<msg_lines;++i){
-        string temp;
+        string temp=splited_msg[i];
         if((pos=temp.find("showdown"))!=std::string::npos)continue;
-        else if((pos=temp.find("common/"))!=std::string::npos)in_common=true;
-        else if((pos=temp.find("/common"))!=std::string::npos)in_common=false;
-        else if(in_common){
-          std::sscanf(temp.c_str(),"%s %d",color,&point);
-          printf("common card color:%s point:%d\n",color,point);
+        else if((pos=temp.find("common/"))!=std::string::npos){
+          in_common=true;
+          continue;
+        }
+        else if((pos=temp.find("/common"))!=std::string::npos){
+          in_common=false;
+          continue;
+        }
+        if(in_common){
+          std::sscanf(temp.c_str(),"%s %s",color,point);
+          printf("common card color:%s point:%s\n",color,point);
         }
         else{
-          std::sscanf(temp.c_str(),"%d: %d %s %d %s %d %s",&rank,&pid,color,&point,color2,&point2,nut_hand);
-          printf("user %d hold %s %d and %s %d rank at %d with %s\n",pid,color,point,color2,point2,rank,nut_hand);
+          std::sscanf(temp.c_str(),"%d: %d %s %s %s %s %s",&rank,&pid,color,point,color2,point2,nut_hand);
+          printf("user %d hold %s %s and %s %s rank at %d with %s\n",pid,color,point,color2,point2,rank,nut_hand);
         }
       }
     }
-
     return true;
-
 }
 
 int main(int argc, char *argv[])
