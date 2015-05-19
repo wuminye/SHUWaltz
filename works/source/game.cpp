@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -269,21 +270,18 @@ bool process_sever_message(int socket_id, int size, const char* msg){
       else if((pos=temp.find("button:"))!=std::string::npos){
         //找到庄家
         ext_msg = temp.substr(pos+strlen("button:"));
-        //cout<<ext_msg<<endl;
         std::sscanf(ext_msg.c_str(),"%d %d %d",&pid,&jetton,&money);
         printf("button %d have %d jetton %d money\n",pid,jetton,money);
       }
       else if((pos=temp.find("small blind:"))!=std::string::npos){
         //小盲注
         ext_msg = temp.substr(pos+strlen("small blind:"));
-        //cout<<"small:"<<ext_msg<<endl;
         std::sscanf(ext_msg.c_str(),"%d %d %d",&pid,&jetton,&money);
         printf("small %d have %d jetton %d money\n",pid,jetton,money);
       }
       else if((pos=temp.find("big blind:"))!=std::string::npos){
         //大盲注
         ext_msg = temp.substr(pos+strlen("big blind:"));
-        //cout<<"big:"<<ext_msg<<endl;
         std::sscanf(ext_msg.c_str(),"%d %d %d",&pid,&jetton,&money);
         printf("big %d have %d jetton %d money\n",pid,jetton,money);
       }
@@ -291,6 +289,19 @@ bool process_sever_message(int socket_id, int size, const char* msg){
         std::sscanf(temp.c_str(),"%d %d %d",&pid,&jetton,&money);
         printf("user %d have %d jetton %d money\n",pid,jetton,money);
       }
+    }
+  }
+  if(strstr(msg,"blind")){
+    /*盲注消息
+    blind/ eol
+    pid: bet(1 or 2 lines)
+    /blind eol
+    */
+    int pid;
+    int blind_bet;
+    for(int i=0;i<msg_lines;++i){
+      std::sscanf(splited_msg[i].c_str(),"%d:%d",&pid,&blind_bet);
+      printf("user %d blind %d ",pid,blind_bet);
     }
   }
   if(strstr(msg, "inquire/"))
@@ -341,9 +352,15 @@ bool process_sever_message(int socket_id, int size, const char* msg){
      */
     if(strstr(msg, "hold/"))
     {
-        //初始化两张底牌信息，具体值根据server
-        board.add_mine(SPADES, ace);
-        board.add_mine(DIAMONDS,king);
+      char color[20];
+      int point;
+      for(int i=0;i<msg_lines;++i){
+        std::sscanf(splited_msg[i].c_str(),"%s %d",color,&point);
+        printf("get hold cards with color:%s and point：%d",color,point);
+      }
+      //初始化两张底牌信息，具体值根据server
+      board.add_mine(SPADES, ace);
+      board.add_mine(DIAMONDS,king);
     }
 
     /*
@@ -356,7 +373,13 @@ bool process_sever_message(int socket_id, int size, const char* msg){
      */
     if(strstr(msg,"turn/"))
     {
-        board.add_community(DIAMONDS,ace);
+      char color[20];
+      int point;
+      for(int i=0;i<msg_lines;++i){
+        std::sscanf(splited_msg[i].c_str(),"%s %d",color,&point);
+        printf("get turn card with color:%s and point：%d",color,point);
+      }
+      board.add_community(DIAMONDS,ace);
     }
 
     /*
@@ -369,7 +392,62 @@ bool process_sever_message(int socket_id, int size, const char* msg){
      */
     if(strstr(msg, "river/"))
     {
-        board.add_community(DIAMONDS,ace);
+      char color[20];
+      int point;
+      for(int i=0;i<msg_lines;++i){
+        std::sscanf(splited_msg[i].c_str(),"%s %d",color,&point);
+        printf("get river card with color:%s and point：%d",color,point);
+      }
+      board.add_community(DIAMONDS,ace);
+    }
+    /*
+    彩池分配消息
+    pot-win/ eol
+    pid: num eol
+    /pot-win eol
+    */
+    if(strstr(msg,"pot-win/")){
+      int pid;
+      int win_money;
+      for(int i=0;i<msg_lines;++i){
+        std::sscanf(splited_msg[i].c_str(),"%d: %d",&pid,&win_money);
+        printf("user %d win %d",pid,win_money);
+      }
+    }
+    /*
+    摊牌消息
+    showdown/ eol
+    common/ eol
+    color point(5 cards)
+    /common eol
+    rank: pid color point color point nut_hand eol
+    /showdown eol
+    */
+    if(strstr(msg,"showdown/")){
+      std::string::size_type pos;
+      string ext_msg;
+      int pid;
+      int rank;
+      char color[20];
+      int point;
+      char color2[20];
+      int point2;
+      char nut_hand[20];//与公共牌组成最大的手牌类型
+      bool in_common=false;
+      for(int i=0;i<msg_lines;++i){
+        string temp;
+        if((pos=temp.find("showdown"))!=std::string::npos)continue;
+        else if((pos=temp.find("common/"))!=std::string::npos)in_common=true;
+        else if((pos=temp.find("/common"))!=std::string::npos)in_common=false;
+        else if(in_common){
+          std::sscanf(temp.c_str(),"%s %d",color,&point);
+          printf("common card color:%s point:%d",color,point);
+        }
+        else{
+          std::sscanf(temp.c_str(),"%d: %d %s %d %s %d %s",&rank,&pid,color,&point,color2,&point2,nut_hand);
+          printf("user %d hold %s %d and %s %d rank at %d with %s",pid,color,point,color2,point2,rank,nut_hand);
+        }
+      }
     }
 
     return true;
