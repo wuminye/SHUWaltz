@@ -1,20 +1,16 @@
 #include "Util.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
-
-#include <stdlib.h>
 #include <string.h>
 #include <cstdio>
-
 #include <sys/types.h>
 #include <sys/socket.h>
-
 #include <unistd.h>
 #include <string.h>
 #include <vector>
 #include <string>
 #include "WorksCore.h"
+
 Board board;
 
 vector <string> split_msg(int size,const char *msg){
@@ -239,9 +235,9 @@ void stack_protection()
 {
     //if (stack- bet) < (blind * 4) and (HS < 0.5) then fold
     //如果（筹码-下注）<(盲注*4)并且（HS<0.5）那么就弃牌
-    if(board.get_chip()-board.get_last_bet()<board.get_blind()*4 && board.get_hand_strength()<0.5)
+    if(board.get_my_chip()-board.get_last_bet()<board.get_blind()*4 && board.get_hand_strength()<0.5)
     {
-        //弃牌fold动作
+        //执行弃牌fold动作
     }
         
 }
@@ -260,7 +256,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
   else if (strstr(msg,"seat/")){
     //位置消息，表示开始新的一局，清空所有vector
     //clearn board
-    board.clearn();
+    board.clear();
     board.update_players(msg_lines-2);
     for(int i=0;i<msg_lines;++i){
       string temp = splited_msg[i];

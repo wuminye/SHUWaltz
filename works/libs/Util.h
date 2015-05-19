@@ -469,6 +469,9 @@ public:
     HandCards mine; //自己的手牌
     HandCards community; //当前公共牌的情况
     HandCards all; //自己手牌+公共牌
+    int blind;//盲注大小
+    int last_bet;//最新的下注
+    int my_chip; //自己的剩余筹码
 
     Board(){}
 
@@ -476,13 +479,48 @@ public:
     {
         pot = new_pot;
     }
-    void clearn(){
+    
+    void clear(){
         pot=0;
         players=0;
         mine.clear();
         community.clear();
         all.clear();
+        last_bet=0;
+        blind=0;
+        my_chip=0;
     }
+    
+    int get_blind()
+    {
+        return blind;
+    }
+    
+    void update_blind(int new_blind)
+    {
+        blind=new_blind;
+    }
+    
+    int get_my_chip()
+    {
+        return my_chip;
+    }
+    
+    void update_my_chip(int chip)
+    {
+        my_chip=chip;
+    }
+    
+    int get_last_bet()
+    {
+        return last_bet;
+    }
+    
+    void update_last_bet(int new_bet)
+    {
+        last_bet=new_bet;
+    }
+    
     int get_pot()
     {
         return pot;
