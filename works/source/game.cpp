@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
+#include <cstdio>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -247,7 +247,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
   /*
   process single message receive from server
   */
-  printf("receive message from server: %s\n",msg);
+  printf("receive message from server:\n %s\n",msg);
   vector<string> splited_msg = split_msg(size,msg);
   int msg_lines = splited_msg.size();
   if(strstr(msg, "game-over")!=NULL)//game over
@@ -301,7 +301,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
     int blind_bet;
     for(int i=0;i<msg_lines;++i){
       std::sscanf(splited_msg[i].c_str(),"%d:%d",&pid,&blind_bet);
-      printf("user %d blind %d ",pid,blind_bet);
+      printf("user %d blind %d\n",pid,blind_bet);
     }
   }
   if(strstr(msg, "inquire/"))
@@ -320,7 +320,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
        check | call | raise num | all_in | fold eol
        */
       const char* rep_msg = "all_in";
-      //send(socket_id,rep_msg,(int)strlen(rep_msg)+1,0);
+      send(socket_id,rep_msg,(int)strlen(rep_msg)+1,0);
   }
 
     /*
@@ -356,7 +356,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
       int point;
       for(int i=0;i<msg_lines;++i){
         std::sscanf(splited_msg[i].c_str(),"%s %d",color,&point);
-        printf("get hold cards with color:%s and point：%d",color,point);
+        printf("get hold cards with color:%s and point：%d\n",color,point);
       }
       //初始化两张底牌信息，具体值根据server
       board.add_mine(SPADES, ace);
@@ -377,7 +377,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
       int point;
       for(int i=0;i<msg_lines;++i){
         std::sscanf(splited_msg[i].c_str(),"%s %d",color,&point);
-        printf("get turn card with color:%s and point：%d",color,point);
+        printf("get turn card with color:%s and point：%d\n",color,point);
       }
       board.add_community(DIAMONDS,ace);
     }
@@ -396,7 +396,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
       int point;
       for(int i=0;i<msg_lines;++i){
         std::sscanf(splited_msg[i].c_str(),"%s %d",color,&point);
-        printf("get river card with color:%s and point：%d",color,point);
+        printf("get river card with color:%s and point：%d\n",color,point);
       }
       board.add_community(DIAMONDS,ace);
     }
@@ -411,7 +411,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
       int win_money;
       for(int i=0;i<msg_lines;++i){
         std::sscanf(splited_msg[i].c_str(),"%d: %d",&pid,&win_money);
-        printf("user %d win %d",pid,win_money);
+        printf("user %d win %d\n",pid,win_money);
       }
     }
     /*
@@ -441,11 +441,11 @@ bool process_sever_message(int socket_id, int size, const char* msg){
         else if((pos=temp.find("/common"))!=std::string::npos)in_common=false;
         else if(in_common){
           std::sscanf(temp.c_str(),"%s %d",color,&point);
-          printf("common card color:%s point:%d",color,point);
+          printf("common card color:%s point:%d\n",color,point);
         }
         else{
           std::sscanf(temp.c_str(),"%d: %d %s %d %s %d %s",&rank,&pid,color,&point,color2,&point2,nut_hand);
-          printf("user %d hold %s %d and %s %d rank at %d with %s",pid,color,point,color2,point2,rank,nut_hand);
+          printf("user %d hold %s %d and %s %d rank at %d with %s\n",pid,color,point,color2,point2,rank,nut_hand);
         }
       }
     }
