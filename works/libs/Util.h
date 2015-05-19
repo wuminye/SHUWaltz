@@ -436,7 +436,7 @@ public:
 
        return GetDistinct()>t.GetDistinct();
     }
-    
+
     bool operator>(const HandCards & t) const
     {
         if (data.size()!=5 || t.data.size()!=5)
@@ -444,10 +444,10 @@ public:
             cout<<"error! The number of handcards must be equal to 5!"<<endl;
             exit(-1);
         }
-        
+
         return GetDistinct()<t.GetDistinct();
     }
-    
+
     bool operator>=(const HandCards & t) const
     {
         if (data.size()!=5 || t.data.size()!=5)
@@ -455,7 +455,7 @@ public:
             cout<<"error! The number of handcards must be equal to 5!"<<endl;
             exit(-1);
         }
-        
+
         return GetDistinct()<=t.GetDistinct();
     }
 
@@ -469,59 +469,65 @@ public:
     HandCards mine; //自己的手牌
     HandCards community; //当前公共牌的情况
     HandCards all; //自己手牌+公共牌
-    
+
     Board(){}
-    
+
     void update_pot(int new_pot)
     {
         pot = new_pot;
     }
-    
+    void clearn(){
+        pot=0;
+        players=0;
+        mine.clear();
+        community.clear();
+        all.clear();
+    }
     int get_pot()
     {
         return pot;
     }
-    
+
     void update_players(int new_players)
     {
         players=new_players;
     }
-    
+
     void add_community(SuitOfPoker color, RankOfPoker point)
     {
         community.add(Poker(color,point));
         all.add(Poker(color, point));
     }
-    
+
     void add_community(int no)
     {
         community.add(Poker(no));
         all.add(Poker(no));
     }
-    
+
     HandCards get_community()
     {
         return community;
     }
-    
+
     void add_mine(SuitOfPoker color, RankOfPoker point)
     {
         mine.add(Poker(color, point));
         all.add(Poker(color, point));
     }
-    
+
     void add_mine(int no)
     {
         mine.add(Poker(no));
         all.add(Poker(no));
     }
-    
+
     HandCards get_mine()
     {
         return mine;
     }
-    
-    
+
+
     /*
      计算Hand Strength (HS)
      根据不同时期公共牌(0,3,4,5)的具体情况，补齐公共牌使所有已知牌(手牌2+已知公共牌+剩余公共牌)都是7张
@@ -535,56 +541,56 @@ public:
         vector<Poker> known_cards;
         known_cards = all.GetData();
         HandCards enemy;
-        
+
         HandCards copy_community;
         copy_community.GetFromOther(community);//现有公共牌
-        
+
         HandCards copy_mine;
         copy_mine.GetFromOther(mine);//底牌
-        
+
         int missing_community= 5 - community.GetData().size();//还需补足的剩余公共牌个数，可以取5, 2, 1, 0
-        
+
         for (round=0; round<1000; round++)
         {
             copy_community.Shuffle(missing_community, known_cards);
 //            copy_community.print();
-            
+
             copy_mine.GetFromOther(copy_community);
 //            copy_mine.print();
             copy_mine.CalcMax();
 //            copy_mine.print();
-            
+
             enemy.Shuffle(2, known_cards);
             enemy.GetFromOther(copy_community);
 //            enemy.print();
             enemy.CalcMax();
 //            enemy.print();
-            
+
             if(copy_mine >= enemy)
                 win++;
-            
+
             known_cards.clear();
             known_cards=all.GetData();
-            
+
             copy_mine.clear();
             copy_mine.GetFromOther(mine);
-            
+
             copy_community.clear();
             copy_community.GetFromOther(community);
-            
+
             enemy.clear();
         }
-        
+
         double HS=(double)win/(double)round;
         cout<<"Hand Strength: "<<HS<<endl;
         return HS;
     }
-    
+
     double calculate_PotOdds(int my_bet)    //计算赔率Pot odds
     {
         return (double)my_bet / (double)(get_pot() + my_bet);
     }
-    
+
     double calculate_RR(int my_bet)     //计算回报率RR
     {
         double rr = get_hand_strength() / calculate_PotOdds(my_bet);
@@ -671,7 +677,7 @@ double calculate_hand_strength(HandCards original,
 
      temp = known_cards;  //列表备份
      int win = 0;
-    
+
       for (int round=0; round < tar_round; round++)
       {
           HandCards mine;
@@ -701,7 +707,7 @@ double calculate_hand_strength(HandCards original,
               enemy[j].Shuffle(N - (int)enemy[j].GetData().size(), known_cards);
               enemy[j].CalcMax();
           }
-          
+
           sort(enemy.begin(),enemy.end());
 
 //          enemy.print();
@@ -713,7 +719,7 @@ double calculate_hand_strength(HandCards original,
             p = j+1;
             break;
          }
-          
+
           win += p;
           known_cards = temp;
       }
