@@ -1,4 +1,4 @@
-﻿#include "Util.h"
+#include "Util.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -121,18 +121,6 @@ void test3()
     delete res;
 }
 
-bool process_message(int socket_id, int size,const char* msg){
-  printf("get message from server:%s\n",msg);
-  if(strstr(msg, "game-over")!=NULL){//本场比赛结束
-    return false;
-  }
-  if(strstr(msg, "inquire/")){
-    const char* rep_msg = "all_in";
-    send(socket_id,rep_msg,(int)strlen(rep_msg)+1,0);
-  }
-  return true;
-}
-
 //翻牌前
 void test4()
 {
@@ -146,13 +134,11 @@ void test4()
 
     board.mine.clear();
     board.community.clear();
-
 }
 
 //三张公共牌
 void test5()
 {
-
 
     cout<<"==========翻牌局测试=========="<<endl;
     vector<Poker> known_cards;
@@ -209,7 +195,6 @@ void test7()
     board.mine.clear();
     board.community.clear();
 
-
 }
 
 
@@ -221,7 +206,7 @@ void test7()
  Else (RR >= 1.3) 0%  fold, 30% call, 70% raise
  */
 
-void FCR_decision(int my_bet)//TO-Do
+void FCR_decision(int my_bet)//TO-DO
 {
     double rr= board.calculate_RR(my_bet); //RR回报率 Rate of Return = Hand Strength / Pot Odds.
     if(rr<0.8)
@@ -242,6 +227,23 @@ void FCR_decision(int my_bet)//TO-Do
 
     }
 
+}
+/*
+ 
+ 筹码保护
+ 当自己的筹码很少时执行
+ 如果叫牌会让你只剩下不到四倍的盲注，那就不用叫牌，除非你有50%以上的胜算
+ 
+ */
+void stack_protection()
+{
+    //if (stack- bet) < (blind * 4) and (HS < 0.5) then fold
+    //如果（筹码-下注）<(盲注*4)并且（HS<0.5）那么就弃牌
+    if(board.get_chip()-board.get_last_bet()<board.get_blind()*4 && board.get_hand_strength()<0.5)
+    {
+        //弃牌fold动作
+    }
+        
 }
 
 bool process_sever_message(int socket_id, int size, const char* msg){
@@ -313,9 +315,9 @@ bool process_sever_message(int socket_id, int size, const char* msg){
 
       //同时得到其他玩家的行为，加入决策
       //TO-DO
-      int last_bet=20;//假设20
+      
+      board.update_last_bet(20);//假设20
       //按决策进行相应的action
-      //FCR_decision(last_bet);
 
       /*
        发送行动消息(action-msg)
@@ -475,6 +477,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
 
 int main(int argc, char *argv[])
 {
+    
     if(argc!=6){
         printf("Usage: ./%s server_ip server_port my_ip my_port my_id\n",argv[0]);
         return -1;

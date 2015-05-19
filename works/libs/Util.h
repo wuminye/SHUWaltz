@@ -532,7 +532,7 @@ public:
      计算Hand Strength (HS)
      根据不同时期公共牌(0,3,4,5)的具体情况，补齐公共牌使所有已知牌(手牌2+已知公共牌+剩余公共牌)都是7张
      适用于翻牌前以及翻牌后3、4、5张公共牌的全部情况
-     只利用一个对手即可，计算自己的5张牌>=对手的次数
+     只利用一个对手即可，计算自己的最大5张牌>=对手的次数
      任何时期根据仅有的自己底牌和公共牌情况，随机取样对手的底牌，得到HS
      */
     double get_hand_strength()
@@ -540,8 +540,8 @@ public:
         int win = 0, round;
         vector<Poker> known_cards;
         known_cards = all.GetData();
+//        vector<HandCards> enemy;
         HandCards enemy;
-
         HandCards copy_community;
         copy_community.GetFromOther(community);//现有公共牌
 
@@ -553,22 +553,14 @@ public:
         for (round=0; round<1000; round++)
         {
             copy_community.Shuffle(missing_community, known_cards);
-//            copy_community.print();
-
             copy_mine.GetFromOther(copy_community);
-//            copy_mine.print();
             copy_mine.CalcMax();
-//            copy_mine.print();
-
             enemy.Shuffle(2, known_cards);
             enemy.GetFromOther(copy_community);
-//            enemy.print();
             enemy.CalcMax();
-//            enemy.print();
 
             if(copy_mine >= enemy)
                 win++;
-
             known_cards.clear();
             known_cards=all.GetData();
 
