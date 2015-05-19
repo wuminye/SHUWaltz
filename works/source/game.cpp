@@ -1,6 +1,7 @@
 #include "Util.h"
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
 #include <string.h>
 #include <cstdio>
 #include <sys/types.h>
