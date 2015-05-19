@@ -2,7 +2,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <unistd.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <cstdio>
@@ -14,6 +14,7 @@
 #include <string.h>
 #include <vector>
 #include <string>
+#include "WorksCore.h"
 Board board;
 
 vector <string> split_msg(int size,const char *msg){
@@ -478,62 +479,19 @@ int main(int argc, char *argv[])
         printf("Usage: ./%s server_ip server_port my_ip my_port my_id\n",argv[0]);
         return -1;
     }
-    //根据参数提取信息
-    in_addr_t server_ip = inet_addr(argv[1]);
-    in_port_t server_port = atoi(argv[2]);
-    in_addr_t my_ip = inet_addr(argv[3]);
-    in_port_t my_port = atoi(argv[4]);
-    int my_id = atoi(argv[5]);
 
-    char *my_name = strrchr(argv[0],'/');
-    if(my_name==NULL){
-        my_name = argv[0];
-    }
-    else{
-        my_name++;
-    }
 
-    int socket_id = socket(AF_INET,SOCK_STREAM,0);
+   core = new Core(argc, argv);
 
-    sockaddr_in my_addr;
-    my_addr.sin_family=AF_INET; //设置为IP通信
-    my_addr.sin_addr.s_addr=my_ip;//设置ip
-    my_addr.sin_port=htons(my_port);//设置端口
-    long flag=1;
-    setsockopt(socket_id,SOL_SOCKET,SO_REUSEADDR,(char *)&flag,sizeof(flag));
-    if(bind(socket_id,(sockaddr*)&my_addr,sizeof(sockaddr))<0){
-        printf("bind fail.\n");
-        return -1;
-    }
+   while (1)
+   {
 
-    sockaddr_in server_addr;
-    server_addr.sin_family=AF_INET; //设置为IP通信
-    server_addr.sin_addr.s_addr=server_ip;//设置ip
-    server_addr.sin_port=htons(server_port);//设置端口
+   };
 
-    while(connect(socket_id, (sockaddr*)&server_addr, sizeof(sockaddr))!=0){
-        usleep(100*1000);//挂起100ms
-    }
-    printf("connect server success.\n");
-
-    char reg_msg[50]="";
-    snprintf(reg_msg,sizeof(reg_msg)-1, "reg: %d %s \n",my_id,my_name);
-    printf("send register message%s",reg_msg);
-    send(socket_id,reg_msg,(int)strlen(reg_msg)+1,0);
-
-    while(true){
-        char buffer[1024]={"\0"};
-        int recv_size = recv(socket_id,buffer,sizeof(buffer)-1,0);
-        if(recv_size>0){
-            if(!process_sever_message(socket_id,recv_size,buffer)){
-                break;
-            }
-        }
-    }
-    close(socket_id);
-
+/*
     test4();
     test5();
     test6();
     test7();
+    */
 }
