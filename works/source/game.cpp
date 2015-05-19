@@ -268,25 +268,28 @@ bool process_sever_message(int socket_id, int size, const char* msg){
       if((pos=temp.find("seat"))!=std::string::npos)continue;
       else if((pos=temp.find("button:"))!=std::string::npos){
         //找到庄家
-        ext_msg = temp.substr(pos+1);
+        ext_msg = temp.substr(pos+strlen("button:"));
+        //cout<<ext_msg<<endl;
         std::sscanf(ext_msg.c_str(),"%d %d %d",&pid,&jetton,&money);
-        printf("button %d have %d jetton %d money",pid,jetton,money);
+        printf("button %d have %d jetton %d money\n",pid,jetton,money);
       }
       else if((pos=temp.find("small blind:"))!=std::string::npos){
         //小盲注
-        ext_msg = temp.substr(pos+1);
+        ext_msg = temp.substr(pos+strlen("small blind:"));
+        //cout<<"small:"<<ext_msg<<endl;
         std::sscanf(ext_msg.c_str(),"%d %d %d",&pid,&jetton,&money);
-        printf("small %d have %d jetton %d money",pid,jetton,money);
+        printf("small %d have %d jetton %d money\n",pid,jetton,money);
       }
       else if((pos=temp.find("big blind:"))!=std::string::npos){
         //大盲注
-        ext_msg = temp.substr(pos+1);
+        ext_msg = temp.substr(pos+strlen("big blind:"));
+        //cout<<"big:"<<ext_msg<<endl;
         std::sscanf(ext_msg.c_str(),"%d %d %d",&pid,&jetton,&money);
-        printf("big %d have %d jetton %d money",pid,jetton,money);
+        printf("big %d have %d jetton %d money\n",pid,jetton,money);
       }
       else{
         std::sscanf(temp.c_str(),"%d %d %d",&pid,&jetton,&money);
-        printf("user %d have %d jetton %d money",pid,jetton,money);
+        printf("user %d have %d jetton %d money\n",pid,jetton,money);
       }
     }
   }
@@ -299,14 +302,14 @@ bool process_sever_message(int socket_id, int size, const char* msg){
       //TO-DO
       int last_bet=20;//假设20
       //按决策进行相应的action
-      FCR_decision(last_bet);
+      //FCR_decision(last_bet);
 
       /*
        发送行动消息(action-msg)
        check | call | raise num | all_in | fold eol
        */
       const char* rep_msg = "all_in";
-      send(socket_id,rep_msg,(int)strlen(rep_msg)+1,0);
+      //send(socket_id,rep_msg,(int)strlen(rep_msg)+1,0);
   }
 
     /*
