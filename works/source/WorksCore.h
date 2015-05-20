@@ -150,7 +150,15 @@ public:
   }
   void ProcessMSG(char *data,char * buf)
   {
+    if (strstr(data,"game-over ")!=NULL)
+    {
+      pthread_mutex_lock(&mutex_x);
 
+      mesgQ.push(string("game-over \n"));
+
+      pthread_mutex_unlock(&mutex_x);
+      return;
+    }
     while (countchar(data)> 1 )
     {
         int cnt = 1;
