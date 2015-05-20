@@ -201,45 +201,93 @@ void test7()
  Else (RR >= 1.3) 0%  fold, 30% call, 70% raise
  */
 
-void FCR_decision(int my_bet)//TO-DO
-{
-    double rr= board.calculate_RR(my_bet); //RR回报率 Rate of Return = Hand Strength / Pot Odds.
-    if(rr<0.8)
-    {
-
-    }
-    else if(rr<1.0)
-    {
-
-
-    }
-    else if(rr<1.3)
-    {
-
-    }
-    else // rr >=1.3
-    {
-
-    }
-
-}
 /*
-
  筹码保护
  当自己的筹码很少时执行
  如果叫牌会让你只剩下不到四倍的盲注，那就不用叫牌，除非你有50%以上的胜算
-
+ 
  */
-void stack_protection()
+bool stack_protection()
 {
     //if (stack- bet) < (blind * 4) and (HS < 0.5) then fold
     //如果（筹码-下注）<(盲注*4)并且（HS<0.5）那么就弃牌
     if(board.get_my_chip()-board.get_last_bet()<board.get_blind()*4 && board.get_hand_strength()<0.5)
     {
         //执行弃牌fold动作
+        return true;
     }
-
+    return false;
 }
+
+string FCR_decision(int my_bet)//TO-DO
+{
+    string rep_msg;
+    if(stack_protection())
+    {
+        rep_msg="fold";
+        return rep_msg;
+    }
+    
+    int prob= 1 + rand() % 101;
+    double rr= board.calculate_RR(my_bet); //RR回报率 Rate of Return = Hand Strength / Pot Odds.
+    if(rr<0.8)
+    {
+        if(prob<=5)
+        {
+            //5% raise (just for bluff)
+            rep_msg="raise 50";//加注数额暂为20
+        }
+        else
+        {
+            rep_msg = "fold";
+        }
+    }
+    else if(rr<1.0)
+    {
+        if(prob<=80)
+        {
+            rep_msg = "fold";
+        }
+        else
+        {
+            if(prob>=95)
+            {
+                rep_msg = "call";
+            }
+            else
+            {
+                rep_msg = "raise 50";
+            }
+        }
+
+    }
+    else if(rr<1.3)
+    {
+        if(prob<=60)
+        {
+            rep_msg = "call";
+        }
+        else
+        {
+            rep_msg = "raise 50";
+        }
+
+    }
+    else // rr >=1.3
+    {
+        if(prob<=30)
+        {
+            rep_msg = "call";
+        }
+        else
+        {
+            rep_msg = "raise 50";
+        }
+    }
+    
+    return rep_msg;
+}
+
 
 bool process_sever_message(Core *core, int size, const char* msg){
   /*
@@ -306,19 +354,19 @@ bool process_sever_message(Core *core, int size, const char* msg){
   }
   else if(strstr(msg, "inquire/"))
   {
+      int pid,jetton,money,bet,blind;
+      char* action;
+      std::sscanf(splited_msg[1].c_str(),"%d %d %d %d %d %s",&pid,&jetton,&money,&bet,&blind,action);
+      //得到上家的投注
+      board.update_last_bet(bet);
+      
       splited_msg.pop_back();
       string total_pot=splited_msg.back();
       int total_pot_num;
-      std::sscanf(total_pot.substr(11,total_pot.size()-12).c_str(), "%d",&total_pot_num);
+      std::sscanf(total_pot.c_str(), "total pot: %d",&total_pot_num);
       
       //得到当前底池的总金额
       board.update_pot(total_pot_num);
-
-      //同时得到其他玩家的行为，加入决策
-      //TO-DO
-
-//      board.update_last_bet(20);
-      //按决策进行相应的action
 
       /*
        发送行动消息(action-msg)
@@ -330,6 +378,17 @@ bool process_sever_message(Core *core, int size, const char* msg){
 
       core->sendmesg(rep_msg,0);
       printf("\n[send]: \n%s\n",rep_msg);
+      
+      
+//      //加入FCR决策
+//      string decision= FCR_decision(board.get_last_bet());
+//      if (decision=="call")
+//          board.update_my_chip(board.get_my_chip()-board.get_last_bet());
+//      else if(decision== "raise 50")
+//          board.update_my_chip(board.get_my_chip()-board.get_last_bet()-50);
+//      core->sendmesg(FCR_decision(board.get_last_bet()).c_str(),0);
+      
+
   }
 
     /*
