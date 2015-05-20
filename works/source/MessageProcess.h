@@ -43,12 +43,12 @@ void test()
         Poker a(12);
      {SPADES,HEARTS,DIAMONDS,CLUBS};
 
-     [2-10]|J|Q|K|A
+     [p2-p10]|J|Q|K|A
 
     */
 
-    Poker a(DIAMONDS,jack);
-    Poker b(SPADES,nine);
+    Poker a(DIAMONDS,J);
+    Poker b(SPADES,p9);
     Poker c(17);
 
 /*
@@ -306,20 +306,28 @@ bool process_sever_message(Core *core, int size, const char* msg){
   }
   else if(strstr(msg, "inquire/"))
   {
-      //得到当前底池的总金额，具体值根据server
-      board.update_pot(1000);
+      splited_msg.pop_back();
+      string total_pot=splited_msg.back();
+      int total_pot_num;
+      std::sscanf(total_pot.substr(11,total_pot.size()-12).c_str(), "%d",&total_pot_num);
+      
+      //得到当前底池的总金额
+      board.update_pot(total_pot_num);
 
       //同时得到其他玩家的行为，加入决策
       //TO-DO
 
-      board.update_last_bet(20);//假设20
+//      board.update_last_bet(20);
       //按决策进行相应的action
 
       /*
        发送行动消息(action-msg)
        check | call | raise num | all_in | fold eol
        */
-      const char* rep_msg = "all_in\n";
+
+      const char* rep_msg = "all_in";
+      board.update_my_chip(0);
+
       core->sendmesg(rep_msg,0);
       printf("\n[send]: \n%s\n",rep_msg);
   }
@@ -339,16 +347,32 @@ bool process_sever_message(Core *core, int size, const char* msg){
       char color[3][20];
       char point[3][20];
       int num=0;
-      for(int i=0;i<msg_lines;++i){
-        if(splited_msg[i].find("flop")!=std::string::npos)continue;
-        std::sscanf(splited_msg[i].c_str(),"%s%s",color[num],point[num]);
-        printf("get flop card with color:%s and point:%s\n",color[num],point[num]);
-        num++;
+
+        int suit_no=0;
+        int rank_no=0;
+      for(int i=0;i<msg_lines;++i)
+      {
+          if(splited_msg[i].find("flop")!=std::string::npos)
+              continue;
+          std::sscanf(splited_msg[i].c_str(),"%s %s",color[num],point[num]);
+          printf("get flop card with color:%s and point:%s\n",color[num],point[num]);
+          
+          //遍历 将扑克映射得到枚举值
+          for (int i=0;i<SuitofPokerVector.size();i++)
+              if (strcmp(SuitofPokerVector[i].c_str(),color[num])==0) {
+                  suit_no=i;
+                  break;
+              }
+          
+          for (int i=0;i<RankofPokerVector.size();i++)
+              if (strcmp(RankofPokerVector[i].c_str(),point[num])==0) {
+                  rank_no=i;
+                  break;
+              }
+          //添加公共牌信息
+          board.add_community(SuitOfPoker(suit_no),RankOfPoker(rank_no));
+          num++;
       }
-        //添加三张公牌信息，具体值根据server来定
-        board.add_community(DIAMONDS,ace);
-        board.add_community(DIAMONDS, ace);
-        board.add_community(DIAMONDS, ace);
     }
 
     /*
@@ -364,14 +388,28 @@ bool process_sever_message(Core *core, int size, const char* msg){
     {
       char color[20];
       char point[20];
-      for(int i=0;i<msg_lines;++i){
-        if(splited_msg[i].find("hold")!=std::string::npos)continue;
-        std::sscanf(splited_msg[i].c_str(),"%s%s",color,point);
-        printf("get hold cards with color:%s and point:%s\n",color,point);
-      }
-      //初始化两张底牌信息，具体值根据server
-      board.add_mine(SPADES, ace);
-      board.add_mine(DIAMONDS,king);
+
+        int suit_no=0;
+        int rank_no=0;
+        for(int i=0;i<msg_lines;++i){
+            if(splited_msg[i].find("hold")!=std::string::npos)
+                continue;
+            std::sscanf(splited_msg[i].c_str(),"%s %s",color,point);
+            printf("get hold cards with color:%s and point:%s\n",color,point);
+            //遍历 将扑克映射得到枚举值
+            for (int i=0;i<SuitofPokerVector.size();i++)
+                if (strcmp(SuitofPokerVector[i].c_str(),color)==0) {
+                    suit_no=i;
+                    break;
+                }
+            
+            for (int i=0;i<RankofPokerVector.size();i++)
+                if (strcmp(RankofPokerVector[i].c_str(),point)==0) {
+                    rank_no=i;
+                    break;
+                }
+            board.add_mine(SuitOfPoker(suit_no), RankOfPoker(rank_no));//初始化手牌
+        }
     }
 
     /*
@@ -386,12 +424,28 @@ bool process_sever_message(Core *core, int size, const char* msg){
     {
       char color[20];
       char point[20];
-      for(int i=0;i<msg_lines;++i){
-        if(splited_msg[i].find("turn")!=std::string::npos)continue;
-        std::sscanf(splited_msg[i].c_str(),"%s%s",color,point);
-        printf("get turn card with color:%s and point:%s\n",color,point);
+        int suit_no=0;
+        int rank_no=0;
+      for(int i=0;i<msg_lines;++i)
+      {
+          if(splited_msg[i].find("turn")!=std::string::npos)
+              continue;
+          std::sscanf(splited_msg[i].c_str(),"%s %s",color,point);
+          printf("get turn card with color:%s and point:%s\n",color,point);
+          //遍历 将扑克字符映射到枚举
+          for (int i=0;i<SuitofPokerVector.size();i++)
+              if (strcmp(SuitofPokerVector[i].c_str(),color)==0) {
+                  suit_no=i;
+                  break;
+              }
+          
+          for (int i=0;i<RankofPokerVector.size();i++)
+              if (strcmp(RankofPokerVector[i].c_str(),point)==0) {
+                  rank_no=i;
+                  break;
+              }
+          board.add_community(SuitOfPoker(suit_no), RankOfPoker(rank_no));
       }
-      board.add_community(DIAMONDS,ace);
     }
 
     /*
@@ -406,12 +460,30 @@ bool process_sever_message(Core *core, int size, const char* msg){
     {
       char color[20];
       char point[20];
-      for(int i=0;i<msg_lines;++i){
-        if(splited_msg[i].find("river")!=std::string::npos)continue;
-        std::sscanf(splited_msg[i].c_str(),"%s%s",color,point);
-        printf("get river card with color:%s and point:%s\n",color,point);
+        int suit_no=0;
+        int rank_no=0;
+
+      for(int i=0;i<msg_lines;++i)
+      {
+          if(splited_msg[i].find("river")!=std::string::npos)
+              continue;
+          std::sscanf(splited_msg[i].c_str(),"%s %s",color,point);
+          printf("get river card with color:%s and point:%s\n",color,point);
+          //遍历 将扑克字符映射到枚举
+          for (int i=0;i<SuitofPokerVector.size();i++)
+              if (strcmp(SuitofPokerVector[i].c_str(),color)==0) {
+                  suit_no=i;
+                  break;
+              }
+          
+          for (int i=0;i<RankofPokerVector.size();i++)
+              if (strcmp(RankofPokerVector[i].c_str(),point)==0) {
+                  rank_no=i;
+                  break;
+              }
+          
+          board.add_community(SuitOfPoker(suit_no), RankOfPoker(rank_no));
       }
-      board.add_community(DIAMONDS,ace);
     }
     /*
     彩池分配消息
