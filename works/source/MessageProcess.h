@@ -1,18 +1,14 @@
+#ifndef MESSAGEPROCESS
+#define MESSAGEPROCESS
 #include "Util.h"
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
-#include <string.h>
-#include <cstdio>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <string.h>
-#include <vector>
 #include <string>
 #include <iostream>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <string.h>
+#include <cstdio>
 #include "WorksCore.h"
-using namespace std;
 
 Board board;
 
@@ -38,172 +34,6 @@ vector <string> split_msg(int size,const char *msg){
     }
     return res;
 }
-void test()
-{
-    /*
-       一张牌的类Poker
-       两种构造函数
-        Poker a(SPADES,ace);
-        Poker a(12);
-     {SPADES,HEARTS,DIAMONDS,CLUBS};
-
-     [2-10]|J|Q|K|A
-
-    */
-
-    Poker a(DIAMONDS,jack);
-    Poker b(SPADES,nine);
-    Poker c(17);
-
-/*
-   手牌类 HandCards
-   成员函数：
-       add(Poker) 添加扑克牌
-       GetClass() 获得类别名
-       GetUnique() 归类前排名
-       GetDistinct() 归类后排名
-*/
-    HandCards t;
-    t.add(a);
-    printf("%d",a.GetNum());
-    t.add(b);
-    //凑齐7张牌进行分析
-    Result res = t.Analyze(7);
-    //分析结果
-    res.Calc();
-    //显示结果
-    res.show();
-}
-
-void test2()
-{
-  for(int i=0;i<13*4-1;++i){
-    for(int j=i+1;j<13*4-1;++j){
-      HandCards t;
-      t.add(Poker(i));
-      t.add(Poker(j));
-      Result res = t.Analyze(7);
-      //分析结果
-      res.Calc();
-      //显示结果
-      res.show();
-    }
-  }
-}
-
-// by wuminye
-void test3()
-{
-    int N_enemy = 7;
-    vector<Poker> known_cards;
-    HandCards mine,community;
-    mine.Shuffle(2, known_cards);
-    cout<<"手牌:";
-    mine.print();
-   // community.Shuffle(3, known_cards);
-    cout<<"公共牌:";
-    community.print();
-    Result *res = new Result();
-
-    cout<<"预期排名:"<<calculate_hand_strength(mine,community,7,N_enemy,3000,res)<<"/"<<N_enemy+1<<endl;
-
-    res->Calc();
-    cout<<endl<<"预期估计类型概率："<<endl;
-    res->show();
-    mine.GetFromOther(community);
-
-    Result res2 = mine.Analyze(7);
-    res2.Calc();
-    cout<<"准确统计类型概率："<<endl;
-    res2.show();
-
-    delete res;
-}
-
-//翻牌前
-void test4()
-{
-    cout<<"==========翻牌前测试=========="<<endl;
-    vector<Poker> known_cards;
-    board.mine.Shuffle(2, known_cards);
-    cout<<"底牌:"<<endl;
-    board.mine.print();
-    board.update_pot(40); //现在注池有40
-    board.calculate_RR(20); //计算假设跟注后的RR，根据RR决定action
-
-    board.mine.clear();
-    board.community.clear();
-}
-
-//三张公共牌
-void test5()
-{
-
-    cout<<"==========翻牌局测试=========="<<endl;
-    vector<Poker> known_cards;
-
-
-    board.mine.Shuffle(2, known_cards);
-    cout<<"底牌:"<<endl;
-    board.mine.print();
-    board.community.Shuffle(3, known_cards);
-    cout<<"三张公共牌:"<<endl;
-    board.community.print();
-    board.update_pot(40); //现在注池有40
-    board.calculate_RR(20); //计算假设跟注后的RR，根据RR值进行评估
-
-    board.mine.clear();
-    board.community.clear();
-}
-
-//四张公共牌
-void test6()
-{
-
-    cout<<"==========转牌局测试=========="<<endl;
-    vector<Poker> known_cards;
-    board.mine.Shuffle(2, known_cards);
-    cout<<"底牌:"<<endl;
-    board.mine.print();
-    board.community.Shuffle(4, known_cards);
-    cout<<"四张公共牌:"<<endl;
-    board.community.print();
-    board.update_pot(40); //现在注池有40
-    board.calculate_RR(20); //计算假设跟注后的RR，根据RR值进行评估
-
-
-    board.mine.clear();
-    board.community.clear();
-}
-
-//五张公共牌
-void test7()
-{
-
-    cout<<"==========河牌局测试=========="<<endl;
-    vector<Poker> known_cards;
-    board.mine.Shuffle(2, known_cards);
-    cout<<"底牌:"<<endl;
-    board.mine.print();
-    board.community.Shuffle(5, known_cards);
-    cout<<"五张公共牌:"<<endl;
-    board.community.print();
-    board.update_pot(40); //现在注池有40
-    board.calculate_RR(20); //计算假设跟注后的RR，根据RR值进行评估
-
-    board.mine.clear();
-    board.community.clear();
-
-}
-
-
-/*
- FOLD/CALL/RAISE DECISION
- If RR < 0.8 then 95% fold, 0 % call, 5%  raise (bluff)
- If RR < 1.0 then 80% fold, 5%  call, 15% raise (bluff)
- If RR < 1.3 then 0%  fold, 60% call, 40% raise
- Else (RR >= 1.3) 0%  fold, 30% call, 70% raise
- */
 
 void FCR_decision(int my_bet)//TO-DO
 {
@@ -472,46 +302,4 @@ bool process_sever_message(Core *core, int size, const char* msg){
       }
     }
     return true;
-}
-
-int main(int argc, char *argv[])
-{
-
-    if(argc!=6){
-        printf("Usage: ./%s server_ip server_port my_ip my_port my_id\n",argv[0]);
-        return -1;
-    }
-
-
-   core = new Core(argc, argv);
-
-   while (true)
-   {
-         //获取队列消息
-         string res = core-> GetMSG();
-
-         if (res != "#NULL#")
-         {
-            cout<<"----------"<<endl;
-            cout<<res<<endl;
-            cout<<"----------"<<endl;
-            if(!process_sever_message(core,res.length(),res.c_str()))core->CloseThread();
-         }
-
-         usleep(1000);
-         if (!core->IsThreadRunning())
-            break;
-   };
-
-   core->CloseThread();
-   pthread_join (core->recvT,NULL);
-
-   delete core;
-
-/*
-    test4();
-    test5();
-    test6();
-    test7();
-    */
 }
