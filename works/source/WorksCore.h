@@ -77,6 +77,18 @@ class Core;
 
 void *RecvThread(void *c);
 
+int countchar(char * p)
+{
+    int cnt=0;
+    while (*p!='\0')
+    {
+        char *t = strstr(p,"/");
+        if (t==NULL) break;
+        p = t+1;
+        ++cnt;
+    }
+    return cnt;
+}
 
 
 class Core
@@ -139,43 +151,45 @@ public:
   void ProcessMSG(char *data,char * buf)
   {
 
-    while (data[0]!='\0' )
+    while (countchar(data)> 1 )
     {
+        int cnt = 1;
 
-        while (data[0]=='\n' && data[0]!='\0')
+        while ((data[0]=='\n' || data[0]=='\r') && data[0]!='\0')
          ++data;
 
        if (strlen(data)<1) return;
+
        char *p = strstr(data,"/");
 
        if (p==NULL)
        {
-         pthread_mutex_lock(&mutex_x);
-
-         mesgQ.push(string(data,strlen(data)));
-
-         pthread_mutex_unlock(&mutex_x);
-
-         return;
+         break;
        }
+       string tem = string(data,p-data);
 
-       int l = p - data + 1;
-       char *p2 = strstr(p+1,"/");
+       tem = string("/") + tem + string(" ");
+
+       char *p2 = strstr(data,tem.c_str());
+
        if (p2 == NULL)
        {
-          return ;
+         break;
        }
-       p2 += l; //eol
-
-
+       if (strlen(p2)<tem.length())
+       {
+          break;
+       }
        pthread_mutex_lock(&mutex_x);
 
-       mesgQ.push(string(data,p2-data+1));
+       mesgQ.push(string(data,p2-data + tem.length()));
 
        pthread_mutex_unlock(&mutex_x);
-       data = p2+1;
+       data = p2+tem.length();
 
     }
+    if (strlen(data)>0)
+       strcpy(buf,data);
   }
 
   string GetMSG()
@@ -205,27 +219,17 @@ public:
 
 }* core;
 
-int countchar(char * p)
-{
-    int cnt=0;
-    while (*p!='\0')
-    {
-        char *t = strstr(p,"/");
-        if (t==NULL) break;
-        p = t+1;
-    }
-    return cnt;
-}
+
 
 void *RecvThread(void *c)
 {
    Core * core = (Core *)c;
    printf("Recver Setup.\n");
-   char buf[80960]={"\0"};
-   char buf2[80000]={"\0"};
+   char buf[3100]={"\0"};
+   char buf2[3100]={"\0"};
    while (CRecvThread)
    {
-     char buffer[4096]={"\0"};
+     char buffer[1096]={"\0"};
       int recv_size = recv(core->networks.socket_id,buffer,sizeof(buffer)-1,0);
       if (recv_size <=0)
          break;
@@ -233,8 +237,10 @@ void *RecvThread(void *c)
       int tem= countchar(buf);
       if(tem%2==0)
       {
+          memset(buf2,sizeof(buf2),0);
           core->ProcessMSG(buf,buf2);
           memset(buf,sizeof(buf),0);
+          strcpy(buf,buf2);
           //printf("[recv]: \n%s",buffer);
       }
    }
