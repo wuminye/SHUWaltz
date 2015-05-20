@@ -188,6 +188,11 @@ public:
 
      return res;
   }
+  //发送消息
+  ssize_t sendmesg(const char *buff,  int flags = 0)
+  {
+      return  networks.sendmesg(buff,flags);
+  }
 
 
 }* core;
