@@ -303,7 +303,7 @@ bool process_sever_message(Core *core, int size, const char* msg){
   }
   else if (strstr(msg,"seat/")){
     //位置消息，表示开始新的一局，清空所有vector
-    //clearn board
+    //clear board
     board.clear();
     board.update_players(msg_lines-2);
     for(int i=0;i<msg_lines;++i){
@@ -375,12 +375,12 @@ bool process_sever_message(Core *core, int size, const char* msg){
 
       const char* rep_msg = "all_in";
       board.update_my_chip(0);
-
       core->sendmesg(rep_msg,0);
       printf("\n[send]: \n%s\n",rep_msg);
       
       
-//      //加入FCR决策
+      //加入FCR决策
+      
 //      string decision= FCR_decision(board.get_last_bet());
 //      if (decision=="call")
 //          board.update_my_chip(board.get_my_chip()-board.get_last_bet());
