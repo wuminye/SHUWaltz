@@ -29,18 +29,14 @@ static string value_str[] =
 enum SuitOfPoker
 {SPADES,HERATS,CLUBS,DIAMONDS};
 
-vector<string> SuitofPokerVector
-{
-    "SPADES", "HERATS","CLUBS","DIAMONDS",
-};
-
 enum RankOfPoker
 {p2,p3,p4,p5,p6,p7,p8,p9,p10,J,Q,K,A};
 
-vector<string> RankofPokerVector
-{
-    "p2","p3","p4","p5","p6","p7","p8","p9","p10","J","Q","K","A",
-};
+string temp1[4]={"SPADES", "HERATS","CLUBS","DIAMONDS"};
+vector<string> SuitofPokerVector(temp1,temp1+4);
+
+string temp2[13]={"p2","p3","p4","p5","p6","p7","p8","p9","p10","J","Q","K","A"};
+vector<string> RankofPokerVector(temp2,temp2+13);
 
 int prim[] = {2,3,5,7,11,13,17,19,23,29,31,37,41};
 
