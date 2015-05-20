@@ -27,6 +27,7 @@ public:
   ~NetCore()
   {
     close(socket_id);
+    printf("sockets closed.\n");
   }
   int Init()
   {
@@ -87,8 +88,11 @@ public:
   NetCore networks;
   queue<string> mesgQ;
   pthread_t recvT;
+  pthread_mutex_t mutex_x;
+
   Core(int argc, char *argv[])
   {
+     mutex_x = PTHREAD_MUTEX_INITIALIZER;
      CRecvThread = 1;
 
     //根据参数提取信息
@@ -114,7 +118,7 @@ public:
      }
 
      char reg_msg[50]="";
-     snprintf(reg_msg,sizeof(reg_msg)-1, "reg: %d %s \n",my_id,my_name);
+     snprintf(reg_msg,sizeof(reg_msg)-1, "reg: %d %s \n",my_id,my_name.c_str());
      printf("[send register message]: %s",reg_msg);
      networks.sendmesg(reg_msg);
 
@@ -125,8 +129,65 @@ public:
      }
   }
 
+  void CloseThread()
+  {
+    CRecvThread=0;
+  }
+  bool IsThreadRunning()
+  {
+     return CRecvThread;
+  }
+  void ProcessMSG(char *data)
+  {
+
+    while (data[0]!='\0' && data[0]!='\n')
+    {
+       char *p = strstr(data,"/");
+
+       if (p==NULL)
+       {
+         pthread_mutex_lock(&mutex_x);
+
+         mesgQ.push(string(data,strlen(data)));
+
+         pthread_mutex_unlock(&mutex_x);
+
+         return;
+       }
+
+       int l = p - data + 1;
+       char *p2 = strstr(p+1,"/");
+       p2 += l; //eol
 
 
+       pthread_mutex_lock(&mutex_x);
+
+       mesgQ.push(string(data,p2-data+1));
+
+       pthread_mutex_unlock(&mutex_x);
+       data = p2+1;
+
+    }
+  }
+
+  string GetMSG()
+  {
+     string res;
+     pthread_mutex_lock(&mutex_x);
+
+     if (mesgQ.size()==0)
+         res = "#NULL#";
+     else
+     {
+       res =mesgQ.front();
+       mesgQ.pop();
+     }
+
+
+     pthread_mutex_unlock(&mutex_x);
+
+     return res;
+  }
 
 
 }* core;
@@ -134,16 +195,20 @@ public:
 void *RecvThread(void *c)
 {
    Core * core = (Core *)c;
-   printf("接收线程创建.\n");
+   printf("Recver Setup.\n");
    while (CRecvThread)
    {
-      char buffer[1024]={"\0"};
+      char buffer[4096]={"\0"};
       int recv_size = recv(core->networks.socket_id,buffer,sizeof(buffer)-1,0);
+      if (recv_size <=0)
+         break;
       if(recv_size>0)
       {
-          printf("[recv]: \n%s",buffer);
+          core->ProcessMSG(buffer);
+          //printf("[recv]: \n%s",buffer);
       }
    }
-   printf("接收线程结束.\n");
+   CRecvThread = 0;
+   printf("Recver Over.\n");
    return NULL;
 }

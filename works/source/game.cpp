@@ -10,7 +10,9 @@
 #include <string.h>
 #include <vector>
 #include <string>
+#include <iostream>
 #include "WorksCore.h"
+using namespace std;
 
 Board board;
 
@@ -226,11 +228,11 @@ void FCR_decision(int my_bet)//TO-DO
 
 }
 /*
- 
+
  筹码保护
  当自己的筹码很少时执行
  如果叫牌会让你只剩下不到四倍的盲注，那就不用叫牌，除非你有50%以上的胜算
- 
+
  */
 void stack_protection()
 {
@@ -240,7 +242,7 @@ void stack_protection()
     {
         //执行弃牌fold动作
     }
-        
+
 }
 
 bool process_sever_message(int socket_id, int size, const char* msg){
@@ -312,7 +314,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
 
       //同时得到其他玩家的行为，加入决策
       //TO-DO
-      
+
       board.update_last_bet(20);//假设20
       //按决策进行相应的action
 
@@ -474,7 +476,7 @@ bool process_sever_message(int socket_id, int size, const char* msg){
 
 int main(int argc, char *argv[])
 {
-    
+
     if(argc!=6){
         printf("Usage: ./%s server_ip server_port my_ip my_port my_id\n",argv[0]);
         return -1;
@@ -483,10 +485,27 @@ int main(int argc, char *argv[])
 
    core = new Core(argc, argv);
 
-   while (1)
+   while (true)
    {
+         //获取队列消息
+         string res = core-> GetMSG();
+         
+         if (res != "#NULL#")
+         {
+            cout<<"----------"<<endl;
+            cout<<res<<endl;
+            cout<<"----------"<<endl;
+         }
 
+         usleep(1000);
+         if (!core->IsThreadRunning())
+            break;
    };
+
+   core->CloseThread();
+   pthread_join (core->recvT,NULL);
+
+   delete core;
 
 /*
     test4();

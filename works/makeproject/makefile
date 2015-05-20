@@ -12,10 +12,10 @@ CC = g++
 CFLAGS= -Wall -g -I${DIR_LIB}
 
 ${BIN_TARGET}:${OBJ}
-	$(CC) $(OBJ) -o $@
+	$(CC) $(OBJ) -o $@ -lpthread
 
 ${DIR_OBJ}/%.o:${DIR_SRC}/%.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) -c $< -o $@ -lpthread
 
 .PHONY:clean
 clean:
