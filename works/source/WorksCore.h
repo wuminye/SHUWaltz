@@ -1,3 +1,5 @@
+#ifndef WORKSCORE_H
+#define WORKSCORE_H
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -11,9 +13,6 @@
 #include <pthread.h>
 #include <queue>
 using namespace std;
-
-
-
 class NetCore
 {
 public:
@@ -92,7 +91,7 @@ public:
 
   Core(int argc, char *argv[])
   {
-     mutex_x = PTHREAD_MUTEX_INITIALIZER;
+     mutex_x = (pthread_mutex_t)PTHREAD_MUTEX_INITIALIZER;
      CRecvThread = 1;
 
     //根据参数提取信息
@@ -217,3 +216,4 @@ void *RecvThread(void *c)
    printf("Recver Over.\n");
    return NULL;
 }
+#endif
