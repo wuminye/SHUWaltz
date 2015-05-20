@@ -27,10 +27,24 @@ static string value_str[] =
 };
 
 enum SuitOfPoker
-{SPADES,HEARTS,DIAMONDS,CLUBS};
+{SPADES,HERATS,CLUBS,DIAMONDS};
+
+vector<string> SuitofPokerVector
+{
+    "SPADES", "HERATS","CLUBS","DIAMONDS",
+};
+
 enum RankOfPoker
-{deuce,trey,four,five,six,seven,eight,nine,ten,jack,queen,king,ace};
+{p2,p3,p4,p5,p6,p7,p8,p9,p10,J,Q,K,A};
+
+vector<string> RankofPokerVector
+{
+    "p2","p3","p4","p5","p6","p7","p8","p9","p10","J","Q","K","A",
+};
+
 int prim[] = {2,3,5,7,11,13,17,19,23,29,31,37,41};
+
+
 /*
 +--------+--------+--------+--------+
 |xxxbbbbb|bbbbbbbb|cdhsrrrr|xxpppppp|
@@ -44,13 +58,13 @@ b = bit turned on depending on rank of card
 /*
      一张牌的类Poker
      两种构造函数
-     Poker a(ace,spade);
+     Poker a(SPADES,A);
      Poker a(12);
   */
 class Poker
 {
 public:
-
+    
     int data;
     int init_num;
 
