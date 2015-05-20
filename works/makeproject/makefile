@@ -9,13 +9,13 @@ TARGET = game
 BIN_TARGET = ${DIR_BIN}/${TARGET}
 
 CC = g++
-CFLAGS= -Wall -g -I${DIR_LIB}
+CFLAGS= -lpthread  -Wall -g -I${DIR_LIB}
 
 ${BIN_TARGET}:${OBJ}
-	$(CC) $(OBJ) -o $@ -lpthread
+	$(CC) $(OBJ) -o $@ 
 
 ${DIR_OBJ}/%.o:${DIR_SRC}/%.cpp
-	$(CC) $(CFLAGS) -c $< -o $@ -lpthread
+	$(CC) $(CFLAGS) -c $< -o $@ 
 
 .PHONY:clean
 clean:
