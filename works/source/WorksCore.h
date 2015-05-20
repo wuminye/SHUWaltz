@@ -136,11 +136,16 @@ public:
   {
      return CRecvThread;
   }
-  void ProcessMSG(char *data)
+  void ProcessMSG(char *data,char * buf)
   {
 
-    while (data[0]!='\0' && data[0]!='\n')
+    while (data[0]!='\0' )
     {
+
+        while (data[0]=='\n' && data[0]!='\0')
+         ++data;
+
+       if (strlen(data)<1) return;
        char *p = strstr(data,"/");
 
        if (p==NULL)
@@ -156,6 +161,10 @@ public:
 
        int l = p - data + 1;
        char *p2 = strstr(p+1,"/");
+       if (p2 == NULL)
+       {
+          return ;
+       }
        p2 += l; //eol
 
 
@@ -196,19 +205,36 @@ public:
 
 }* core;
 
+int countchar(char * p)
+{
+    int cnt=0;
+    while (*p!='\0')
+    {
+        char *t = strstr(p,"/");
+        if (t==NULL) break;
+        p = t+1;
+    }
+    return cnt;
+}
+
 void *RecvThread(void *c)
 {
    Core * core = (Core *)c;
    printf("Recver Setup.\n");
+   char buf[80960]={"\0"};
+   char buf2[80000]={"\0"};
    while (CRecvThread)
    {
-      char buffer[4096]={"\0"};
+     char buffer[4096]={"\0"};
       int recv_size = recv(core->networks.socket_id,buffer,sizeof(buffer)-1,0);
       if (recv_size <=0)
          break;
-      if(recv_size>0)
+      strcat(buf,buffer);
+      int tem= countchar(buf);
+      if(tem%2==0)
       {
-          core->ProcessMSG(buffer);
+          core->ProcessMSG(buf,buf2);
+          memset(buf,sizeof(buf),0);
           //printf("[recv]: \n%s",buffer);
       }
    }

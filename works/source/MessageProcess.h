@@ -245,6 +245,7 @@ bool process_sever_message(Core *core, int size, const char* msg){
   /*
   process single message receive from server
   */
+  if(size<=0||strlen(msg)==0)return true;
   printf("receive message from server:\n %s\n",msg);
   vector<string> splited_msg = split_msg(size,msg);
   int msg_lines = splited_msg.size();
@@ -318,8 +319,9 @@ bool process_sever_message(Core *core, int size, const char* msg){
        发送行动消息(action-msg)
        check | call | raise num | all_in | fold eol
        */
-      const char* rep_msg = "all_in";
+      const char* rep_msg = "all_in\n";
       core->sendmesg(rep_msg,0);
+      printf("\n[send]: \n%s\n",rep_msg);
   }
 
     /*
@@ -339,7 +341,7 @@ bool process_sever_message(Core *core, int size, const char* msg){
       int num=0;
       for(int i=0;i<msg_lines;++i){
         if(splited_msg[i].find("flop")!=std::string::npos)continue;
-        std::sscanf(splited_msg[i].c_str(),"%s %s",color[num],point[num]);
+        std::sscanf(splited_msg[i].c_str(),"%s%s",color[num],point[num]);
         printf("get flop card with color:%s and point:%s\n",color[num],point[num]);
         num++;
       }
@@ -364,7 +366,7 @@ bool process_sever_message(Core *core, int size, const char* msg){
       char point[20];
       for(int i=0;i<msg_lines;++i){
         if(splited_msg[i].find("hold")!=std::string::npos)continue;
-        std::sscanf(splited_msg[i].c_str(),"%s %s",color,point);
+        std::sscanf(splited_msg[i].c_str(),"%s%s",color,point);
         printf("get hold cards with color:%s and point:%s\n",color,point);
       }
       //初始化两张底牌信息，具体值根据server
@@ -386,7 +388,7 @@ bool process_sever_message(Core *core, int size, const char* msg){
       char point[20];
       for(int i=0;i<msg_lines;++i){
         if(splited_msg[i].find("turn")!=std::string::npos)continue;
-        std::sscanf(splited_msg[i].c_str(),"%s %s",color,point);
+        std::sscanf(splited_msg[i].c_str(),"%s%s",color,point);
         printf("get turn card with color:%s and point:%s\n",color,point);
       }
       board.add_community(DIAMONDS,ace);
@@ -403,11 +405,11 @@ bool process_sever_message(Core *core, int size, const char* msg){
     else if(strstr(msg, "river/"))
     {
       char color[20];
-      int point;
+      char point[20];
       for(int i=0;i<msg_lines;++i){
         if(splited_msg[i].find("river")!=std::string::npos)continue;
-        std::sscanf(splited_msg[i].c_str(),"%s %d",color,&point);
-        printf("get river card with color:%s and point:%d\n",color,point);
+        std::sscanf(splited_msg[i].c_str(),"%s%s",color,point);
+        printf("get river card with color:%s and point:%s\n",color,point);
       }
       board.add_community(DIAMONDS,ace);
     }
