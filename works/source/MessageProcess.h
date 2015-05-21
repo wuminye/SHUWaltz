@@ -125,8 +125,9 @@ void test4()
   board.mine.Shuffle(2, known_cards);
   cout << "底牌:" << endl;
   board.mine.print();
-  board.update_pot(40); //现在注池有40
-  board.calculate_RR(20); //计算假设跟注后的RR，根据RR决定action
+  board.set_total_pot(40); //现在注池有40
+    board.set_last_bet(20);
+  board.calculate_RR(); //计算假设跟注后的RR，根据RR决定action
 
   board.mine.clear();
   board.community.clear();
@@ -143,8 +144,9 @@ void test5()
   board.community.Shuffle(3, known_cards);
   cout << "三张公共牌:" << endl;
   board.community.print();
-  board.update_pot(40); //现在注池有40
-  board.calculate_RR(20); //计算假设跟注后的RR，根据RR值进行评估
+  board.set_total_pot(40); //现在注池有40
+    board.set_last_bet(20);
+  board.calculate_RR(); //计算假设跟注后的RR，根据RR值进行评估
   board.mine.clear();
   board.community.clear();
 }
@@ -160,8 +162,9 @@ void test6()
   board.community.Shuffle(4, known_cards);
   cout << "四张公共牌:" << endl;
   board.community.print();
-  board.update_pot(40); //现在注池有40
-  board.calculate_RR(20); //计算假设跟注后的RR，根据RR值进行评估
+  board.set_total_pot(40); //现在注池有40
+    board.set_last_bet(20);
+  board.calculate_RR(); //计算假设跟注后的RR，根据RR值进行评估
   board.mine.clear();
   board.community.clear();
 }
@@ -177,8 +180,9 @@ void test7()
   board.community.Shuffle(5, known_cards);
   cout << "五张公共牌:" << endl;
   board.community.print();
-  board.update_pot(40); //现在注池有40
-  board.calculate_RR(20); //计算假设跟注后的RR，根据RR值进行评估
+  board.set_total_pot(40); //现在注池有40
+    board.set_last_bet(20);
+  board.calculate_RR(); //计算假设跟注后的RR，根据RR值进行评估
   board.mine.clear();
   board.community.clear();
 }
@@ -277,18 +281,13 @@ string FCR_decision()
   }
 
   // 更新筹码信息
-  switch (rep_msg)
-  {
-  case "call":
-    board.set_my_jetton(board.get_my_jetton() - board.get_last_bet());
-    break;
-  case "raise 50":
-    board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 50);
-    break;
-
-  default:
-    break;
-  }
+    if(rep_msg=="call")
+        board.set_my_jetton(board.get_my_jetton() - board.get_last_bet());
+    else
+    {
+        if(rep_msg=="raize 50")
+            board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 50);
+    }
 
   return rep_msg;
 }
@@ -301,7 +300,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
   if (size <= 0 || strlen(msg) == 0)return true;
   printf("receive message from server:\n %s\n", msg);
   vector<string> splited_msg = split_msg(size, msg);
-  int msg_lines = splited_msg.size();
+  size_t msg_lines = splited_msg.size();
 
   //game over
   if (strstr(msg, "game-over") != NULL)
@@ -314,7 +313,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
   {
     //clear board
     board.clear();
-    board.update_players(msg_lines - 2);
+    board.set_players((int)msg_lines - 2);
     for (int i = 0; i < msg_lines; ++i)
     {
       string temp = splited_msg[i];
@@ -365,7 +364,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
       std::sscanf(splited_msg[i].c_str(), "%d:%d", &pid, &blind_bet);
       printf("user %d blind %d\n", pid, blind_bet);
       if (blind_bet > board.get_blind())
-        blind.set_blind(blind_bet);//保存大盲注信息
+        board.set_blind(blind_bet);//保存大盲注信息
     }
   }
 

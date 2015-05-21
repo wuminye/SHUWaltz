@@ -272,7 +272,7 @@ public:
                 if (res==0) break;
                 if (res == -1) return false;
             }
-            for (int i=data.size()-N; i<(int)data.size(); ++i)
+            for (size_t i=data.size()-N; i<(int)data.size(); ++i)
                 data[i]= Poker(no[i-data.size()+N]);
             return true;
         }
@@ -379,18 +379,18 @@ public:
     {
         vector<Poker> hand = other.GetData();
         vector<Poker>::iterator t;
-        for (t=hand.begin(); t!=hand.end(); t++) {
+        for (t=hand.begin(); t!=hand.end(); ++t) {
             add(Poker(t->GetNum()));
         }
     }
    /* 打印手牌 */
     void print()
     {
-        int n = data.size();
+        size_t n = data.size();
         int *hand = new int[n];
         for (int i=0; i<n; ++i)
             hand[i]=data[i].data;
-        print_hand(hand,n);
+        print_hand(hand,(int)n);
         printf("\n");
         delete []hand;
     }
@@ -480,7 +480,7 @@ public:
     HandCards community; //当前公共牌的情况
     HandCards all; //自己手牌+公共牌
     int blind = 0;//盲注大小
-    int last_bet;//上家的下注
+    int last_bet = 0;//上家的下注
     int my_jetton; //自己的剩余筹码
 
     Board(){}
@@ -498,7 +498,7 @@ public:
 
     int get_total_pot()
     {
-        return pot;
+        return total_pot;
     }
 
     void set_total_pot(int new_pot)
@@ -550,7 +550,7 @@ public:
     {
         return community;
     }
-
+    
     void add_community(SuitOfPoker color, RankOfPoker point)
     {
         community.add(Poker(color,point));
@@ -600,11 +600,11 @@ public:
         HandCards copy_mine;
         copy_mine.GetFromOther(mine);//底牌
 
-        int missing_community= 5 - community.GetData().size();//还需补足的剩余公共牌个数，可以取5, 2, 1, 0
+        size_t missing_community= 5 - community.GetData().size();//还需补足的剩余公共牌个数，可以取5, 2, 1, 0
 
         for (round=0; round<1000; round++)
         {
-            copy_community.Shuffle(missing_community, known_cards);
+            copy_community.Shuffle((int)missing_community, known_cards);
             copy_mine.GetFromOther(copy_community);
             copy_mine.CalcMax();
             enemy.Shuffle(2, known_cards);
@@ -632,7 +632,7 @@ public:
 
     double calculate_PotOdds()    //计算赔率Pot odds
     {
-        return (double)last_bet / (double)(get_pot() + last_bet);
+        return (double)last_bet / (double)(get_total_pot() + last_bet);
     }
 
     double calculate_RR()     //计算回报率RR
