@@ -474,51 +474,57 @@ public:
 class Board // 游戏牌局
 {
 public:
-    int pot; //注池总量
+    int total_pot; //注池总量
     int players; //玩家人数
     HandCards mine; //自己的手牌
     HandCards community; //当前公共牌的情况
     HandCards all; //自己手牌+公共牌
-    int blind;//盲注大小
-    int last_bet;//最新的下注
-    int my_chip; //自己的剩余筹码
+    int blind = 0;//盲注大小
+    int last_bet;//上家的下注
+    int my_jetton; //自己的剩余筹码
 
     Board(){}
 
-    void update_pot(int new_pot)
-    {
-        pot = new_pot;
-    }
-    
     void clear(){
-        pot=0;
+        total_pot=0;
         players=0;
         mine.clear();
         community.clear();
         all.clear();
         last_bet=0;
         blind=0;
-        my_chip=0;
+
+    }
+
+    int get_total_pot()
+    {
+        return pot;
+    }
+
+    void set_total_pot(int new_pot)
+    {
+        total_pot = new_pot;
     }
     
+
     int get_blind()
     {
         return blind;
     }
     
-    void update_blind(int new_blind)
+    void set_blind(int new_blind)
     {
         blind=new_blind;
     }
     
-    int get_my_chip()
+    int get_my_jetton()
     {
-        return my_chip;
+        return my_jetton;
     }
     
-    void update_my_chip(int chip)
+    void set_my_jetton(int jetton)
     {
-        my_chip=chip;
+        my_jetton=jetton;
     }
     
     int get_last_bet()
@@ -526,19 +532,23 @@ public:
         return last_bet;
     }
     
-    void update_last_bet(int new_bet)
+    void set_last_bet(int new_bet)
     {
         last_bet=new_bet;
     }
-    
-    int get_pot()
+    int get_palyers()
     {
-        return pot;
+        return players;
     }
 
-    void update_players(int new_players)
+    void set_players(int new_players)
     {
         players=new_players;
+    }
+
+    HandCards get_community()
+    {
+        return community;
     }
 
     void add_community(SuitOfPoker color, RankOfPoker point)
@@ -553,10 +563,6 @@ public:
         all.add(Poker(no));
     }
 
-    HandCards get_community()
-    {
-        return community;
-    }
 
     void add_mine(SuitOfPoker color, RankOfPoker point)
     {
@@ -575,7 +581,6 @@ public:
         return mine;
     }
 
-
     /*
      计算Hand Strength (HS)
      根据不同时期公共牌(0,3,4,5)的具体情况，补齐公共牌使所有已知牌(手牌2+已知公共牌+剩余公共牌)都是7张
@@ -588,7 +593,6 @@ public:
         int win = 0, round;
         vector<Poker> known_cards;
         known_cards = all.GetData();
-//        vector<HandCards> enemy;
         HandCards enemy;
         HandCards copy_community;
         copy_community.GetFromOther(community);//现有公共牌
@@ -626,14 +630,14 @@ public:
         return HS;
     }
 
-    double calculate_PotOdds(int my_bet)    //计算赔率Pot odds
+    double calculate_PotOdds()    //计算赔率Pot odds
     {
-        return (double)my_bet / (double)(get_pot() + my_bet);
+        return (double)last_bet / (double)(get_pot() + last_bet);
     }
 
-    double calculate_RR(int my_bet)     //计算回报率RR
+    double calculate_RR()     //计算回报率RR
     {
-        double rr = get_hand_strength() / calculate_PotOdds(my_bet);
+        double rr = get_hand_strength() / calculate_PotOdds();
         cout<<"Rate of Return (RR): "<<rr<<endl;
         return rr;
     }
