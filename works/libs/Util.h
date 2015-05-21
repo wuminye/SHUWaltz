@@ -27,12 +27,12 @@ static string value_str[] =
 };
 
 enum SuitOfPoker
-{SPADES,HERATS,CLUBS,DIAMONDS};
+{SPADES,HERATS,DIAMONDS,CLUBS};
 
 enum RankOfPoker
 {p2,p3,p4,p5,p6,p7,p8,p9,p10,J,Q,K,A};
 
-string temp1[4]={"SPADES", "HERATS","CLUBS","DIAMONDS"};
+string temp1[4]={"SPADES","HERATS","DIAMONDS","CLUBS"};
 vector<string> SuitofPokerVector(temp1,temp1+4);
 
 string temp2[13]={"p2","p3","p4","p5","p6","p7","p8","p9","p10","J","Q","K","A"};
@@ -272,7 +272,7 @@ public:
                 if (res==0) break;
                 if (res == -1) return false;
             }
-            for (int i=data.size()-N; i<(int)data.size(); ++i)
+            for (size_t i=data.size()-N; i<(int)data.size(); ++i)
                 data[i]= Poker(no[i-data.size()+N]);
             return true;
         }
@@ -379,18 +379,18 @@ public:
     {
         vector<Poker> hand = other.GetData();
         vector<Poker>::iterator t;
-        for (t=hand.begin(); t!=hand.end(); t++) {
+        for (t=hand.begin(); t!=hand.end(); ++t) {
             add(Poker(t->GetNum()));
         }
     }
    /* 打印手牌 */
     void print()
     {
-        int n = data.size();
+        size_t n = data.size();
         int *hand = new int[n];
         for (int i=0; i<n; ++i)
             hand[i]=data[i].data;
-        print_hand(hand,n);
+        print_hand(hand,(int)n);
         printf("\n");
         delete []hand;
     }
@@ -474,51 +474,77 @@ public:
 class Board // 游戏牌局
 {
 public:
-    int pot; //注池总量
+    int total_pot; //注池总量
     int players; //玩家人数
     HandCards mine; //自己的手牌
     HandCards community; //当前公共牌的情况
     HandCards all; //自己手牌+公共牌
     int blind;//盲注大小
-    int last_bet;//最新的下注
-    int my_chip; //自己的剩余筹码
+    int last_bet;//上家的下注
+    int my_id;//本玩家的id
+    int my_jetton; //自己的剩余筹码
+    int my_money;//自己的剩余金币
 
     Board(){}
 
-    void update_pot(int new_pot)
-    {
-        pot = new_pot;
-    }
-    
     void clear(){
-        pot=0;
+        total_pot=0;
         players=0;
         mine.clear();
         community.clear();
         all.clear();
         last_bet=0;
         blind=0;
-        my_chip=0;
+
+    }
+    int get_my_money()
+    {
+        return my_money;
     }
     
+    void set_my_money(int money)
+    {
+        my_money=money;
+    }
+    
+    int get_id()
+    {
+        return my_id;
+    }
+    void set_id(int idn)
+    {
+        my_id=idn;
+    }
+    
+    int get_total_pot()
+    {
+        return total_pot;
+    }
+
+    void set_total_pot(int new_pot)
+    {
+        total_pot = new_pot;
+    }
+    
+
     int get_blind()
     {
         return blind;
     }
     
-    void update_blind(int new_blind)
+    void set_blind(int new_blind)
     {
         blind=new_blind;
     }
     
-    int get_my_chip()
+    int get_my_jetton()
     {
-        return my_chip;
+        return my_jetton;
     }
     
-    void update_my_chip(int chip)
+    void set_my_jetton(int jetton)
     {
-        my_chip=chip;
+        my_jetton=jetton;
     }
     
     int get_last_bet()
@@ -526,21 +552,25 @@ public:
         return last_bet;
     }
     
-    void update_last_bet(int new_bet)
+    void set_last_bet(int new_bet)
     {
         last_bet=new_bet;
     }
-    
-    int get_pot()
+    int get_palyers()
     {
-        return pot;
+        return players;
     }
 
-    void update_players(int new_players)
+    void set_players(int new_players)
     {
         players=new_players;
     }
 
+    HandCards get_community()
+    {
+        return community;
+    }
+    
     void add_community(SuitOfPoker color, RankOfPoker point)
     {
         community.add(Poker(color,point));
@@ -553,10 +583,6 @@ public:
         all.add(Poker(no));
     }
 
-    HandCards get_community()
-    {
-        return community;
-    }
 
     void add_mine(SuitOfPoker color, RankOfPoker point)
     {
@@ -575,7 +601,6 @@ public:
         return mine;
     }
 
-
     /*
      计算Hand Strength (HS)
      根据不同时期公共牌(0,3,4,5)的具体情况，补齐公共牌使所有已知牌(手牌2+已知公共牌+剩余公共牌)都是7张
@@ -588,7 +613,6 @@ public:
         int win = 0, round;
         vector<Poker> known_cards;
         known_cards = all.GetData();
-//        vector<HandCards> enemy;
         HandCards enemy;
         HandCards copy_community;
         copy_community.GetFromOther(community);//现有公共牌
@@ -596,11 +620,11 @@ public:
         HandCards copy_mine;
         copy_mine.GetFromOther(mine);//底牌
 
-        int missing_community= 5 - community.GetData().size();//还需补足的剩余公共牌个数，可以取5, 2, 1, 0
+        size_t missing_community= 5 - community.GetData().size();//还需补足的剩余公共牌个数，可以取5, 2, 1, 0
 
         for (round=0; round<1000; round++)
         {
-            copy_community.Shuffle(missing_community, known_cards);
+            copy_community.Shuffle((int)missing_community, known_cards);
             copy_mine.GetFromOther(copy_community);
             copy_mine.CalcMax();
             enemy.Shuffle(2, known_cards);
@@ -626,14 +650,14 @@ public:
         return HS;
     }
 
-    double calculate_PotOdds(int my_bet)    //计算赔率Pot odds
+    double calculate_PotOdds()    //计算赔率Pot odds
     {
-        return (double)my_bet / (double)(get_pot() + my_bet);
+        return (double)last_bet / (double)(get_total_pot() + last_bet);
     }
 
-    double calculate_RR(int my_bet)     //计算回报率RR
+    double calculate_RR()     //计算回报率RR
     {
-        double rr = get_hand_strength() / calculate_PotOdds(my_bet);
+        double rr = get_hand_strength() / calculate_PotOdds();
         cout<<"Rate of Return (RR): "<<rr<<endl;
         return rr;
     }

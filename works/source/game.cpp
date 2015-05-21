@@ -28,23 +28,18 @@ int main(int argc, char *argv[])
          string res = core-> GetMSG();
          if (res != "#NULL#")
          {
-
-
             if(!process_sever_message(core,res.length(),res.c_str())){
               core->CloseThread();
             }
-
-
-/*
-            cout<<"[string]:\n"<<res<<endl;
-            printf("---------------------\n");
-            //if ((res.length()>10) && strstr(res.c_str(),"inquire/")!= NULL)
+        
+        /*
+            if ((res.length()>10) && strstr(res.c_str(),"inquire/")!= NULL)
             {
                const char* rep_msg = "all_in\n";
                core->sendmesg(rep_msg,0);
             }
-*/
-
+         */
+             
          }
          usleep(1000);
          if (!core->IsThreadRunning())
