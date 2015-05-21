@@ -205,7 +205,8 @@ bool stack_protection()
 {
   //if (jetton - bet) < (blind * 4) and (HS < 0.5) then fold
   //如果（筹码-下注）<(盲注*4)并且（HS<0.5）那么就弃牌
-  if ( (board.get_my_jetton() - board.get_last_bet() < board.get_blind() * 4 ) && (board.get_hand_strength() < 0.5) )
+  
+  if ((board.get_my_jetton() - board.get_last_bet() < board.get_blind()*4 ) && (board.get_hand_strength() < 0.5))
   {
     //执行弃牌fold动作
     return true;
@@ -215,15 +216,23 @@ bool stack_protection()
 
 string FCR_decision()
 {
+
   string rep_msg;
   if (stack_protection())
   {
     rep_msg = "fold";
     return rep_msg;
   }
-
-  int prob = 1 + rand() % 100;
+    srand((int)time(NULL));
+    float prob=0;
+    for (int m=0;m<100;m++)
+    {
+        prob+=1+(rand()%100);
+    }
+    prob=prob/100.0;
+    
   double rr = board.calculate_RR(); //RR回报率 Rate of Return = Hand Strength / Pot Odds.
+    
   if (rr < 0.8)
   {
     if (prob <= 5)
@@ -306,7 +315,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
     return false;
   }
   //seat
-  //座次消息，表示开始新的一局，清空所有旧
+  //座次消息，表示开始新的一局，清空旧数据
   else if (strstr(msg, "seat/"))
   {
     //clear board
@@ -328,22 +337,42 @@ bool process_sever_message(Core *core, int size, const char* msg) {
         ext_msg = temp.substr(pos + strlen("button:"));
         std::sscanf(ext_msg.c_str(), "%d %d %d", &pid, &jetton, &money);
         printf("button %d have %d jetton %d money\n", pid, jetton, money);
+        if(pid==board.get_id())
+        {
+            board.set_my_jetton(jetton);
+            board.set_my_money(money);
+        }
       }
       else if ((pos = temp.find("small blind:")) != std::string::npos) {
         //小盲注
         ext_msg = temp.substr(pos + strlen("small blind:"));
         std::sscanf(ext_msg.c_str(), "%d %d %d", &pid, &jetton, &money);
         printf("small %d have %d jetton %d money\n", pid, jetton, money);
+          if(pid==board.get_id())
+          {
+              board.set_my_jetton(jetton);
+              board.set_my_money(money);
+          }
       }
       else if ((pos = temp.find("big blind:")) != std::string::npos) {
         //大盲注
         ext_msg = temp.substr(pos + strlen("big blind:"));
         std::sscanf(ext_msg.c_str(), "%d %d %d", &pid, &jetton, &money);
         printf("big %d have %d jetton %d money\n", pid, jetton, money);
+          if(pid==board.get_id())
+          {
+              board.set_my_jetton(jetton);
+              board.set_my_money(money);
+          }
       }
       else {
         std::sscanf(temp.c_str(), "%d %d %d", &pid, &jetton, &money);
         printf("user %d have %d jetton %d money\n", pid, jetton, money);
+          if(pid==board.get_id())
+          {
+              board.set_my_jetton(jetton);
+              board.set_my_money(money);
+          }
       }
     }
   }
@@ -356,6 +385,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
   {
     int pid;
     int blind_bet;
+    board.set_blind(0);
     for (int i = 0; i < msg_lines; ++i) {
       if (splited_msg[i].find("blind") != std::string::npos)
         continue;
@@ -412,14 +442,6 @@ bool process_sever_message(Core *core, int size, const char* msg) {
     int pid, jetton, money, bet, blind;
     char* action;
     
-    splited_msg.pop_back();
-    string total_pot = splited_msg.back();
-    int total_pot_num;
-    std::sscanf(total_pot.c_str(), "total pot: %d", &total_pot_num);
-
-    //得到当前底池的总金额
-    board.set_total_pot(total_pot_num);
-
       for (int i=0;i<msg_lines;++i)
       {
           if (splited_msg[i].find("inquire") != std::string::npos)
@@ -427,12 +449,16 @@ bool process_sever_message(Core *core, int size, const char* msg) {
           std::sscanf(splited_msg[i].c_str(), "%d %d %d %d %d %s", &pid, &jetton, &money, &bet, &blind, action);
           if(i==1)
               board.set_last_bet(bet);//得到上家的投注
-          if (pid==board.get_id())
-          {
-              board.set_my_jetton(jetton);
-              board.set_my_money(money);
-          }
       }
+      
+      splited_msg.pop_back();
+      string total_pot = splited_msg.back();
+      int total_pot_num;
+      std::sscanf(total_pot.c_str(), "total pot: %d", &total_pot_num);
+      
+      //得到当前底池的总金额
+      board.set_total_pot(total_pot_num);
+
 
       // ALL IN 测试
       // const char* rep_msg = "all_in";
@@ -441,7 +467,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
       // printf("\n[send]: \n%s\n", rep_msg);
       
     //FCR决策测试
-     string decision= FCR_decision();
+     string decision = FCR_decision();
      core->sendmesg(decision.c_str(),0);
 
   }

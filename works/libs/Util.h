@@ -27,12 +27,12 @@ static string value_str[] =
 };
 
 enum SuitOfPoker
-{SPADES,HERATS,CLUBS,DIAMONDS};
+{SPADES,HERATS,DIAMONDS,CLUBS};
 
 enum RankOfPoker
 {p2,p3,p4,p5,p6,p7,p8,p9,p10,J,Q,K,A};
 
-string temp1[4]={"SPADES", "HERATS","CLUBS","DIAMONDS"};
+string temp1[4]={"SPADES","HERATS","DIAMONDS","CLUBS"};
 vector<string> SuitofPokerVector(temp1,temp1+4);
 
 string temp2[13]={"p2","p3","p4","p5","p6","p7","p8","p9","p10","J","Q","K","A"};
