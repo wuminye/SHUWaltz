@@ -479,9 +479,11 @@ public:
     HandCards mine; //自己的手牌
     HandCards community; //当前公共牌的情况
     HandCards all; //自己手牌+公共牌
-    int blind = 0;//盲注大小
-    int last_bet = 0;//上家的下注
+    int blind;//盲注大小
+    int last_bet;//上家的下注
+    int my_id;//本玩家的id
     int my_jetton; //自己的剩余筹码
+    int my_money;//自己的剩余金币
 
     Board(){}
 
@@ -495,7 +497,25 @@ public:
         blind=0;
 
     }
-
+    int get_my_money()
+    {
+        return my_money;
+    }
+    
+    void set_my_money(int money)
+    {
+        my_money=money;
+    }
+    
+    int get_id()
+    {
+        return my_id;
+    }
+    void set_id(int idn)
+    {
+        my_id=idn;
+    }
+    
     int get_total_pot()
     {
         return total_pot;

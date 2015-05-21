@@ -13,6 +13,8 @@
 #include <pthread.h>
 #include <queue>
 using namespace std;
+Board board;
+
 class NetCore
 {
 public:
@@ -121,6 +123,7 @@ public:
          p++;
      }
      my_name = string(p);
+     my_name = "waltz";
 
      if (networks.Init()<0)
      {
@@ -130,6 +133,7 @@ public:
 
      char reg_msg[50]="";
      snprintf(reg_msg,sizeof(reg_msg)-1, "reg: %d %s \n",my_id,my_name.c_str());
+     board.set_id(my_id);//记录自己的id信息
      printf("[send register message]: %s",reg_msg);
      networks.sendmesg(reg_msg);
 

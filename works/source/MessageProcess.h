@@ -10,7 +10,6 @@
 #include <cstdio>
 #include "WorksCore.h"
 
-Board board;
 
 vector <string> split_msg(int size, const char *msg) {
   /*
@@ -204,7 +203,7 @@ void test7()
  */
 bool stack_protection()
 {
-  //if (stack- bet) < (blind * 4) and (HS < 0.5) then fold
+  //if (jetton - bet) < (blind * 4) and (HS < 0.5) then fold
   //如果（筹码-下注）<(盲注*4)并且（HS<0.5）那么就弃牌
   if ( (board.get_my_jetton() - board.get_last_bet() < board.get_blind() * 4 ) && (board.get_hand_strength() < 0.5) )
   {
@@ -288,7 +287,6 @@ string FCR_decision()
         if(rep_msg=="raize 50")
             board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 50);
     }
-
   return rep_msg;
 }
 
@@ -413,10 +411,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
   {
     int pid, jetton, money, bet, blind;
     char* action;
-    std::sscanf(splited_msg[1].c_str(), "%d %d %d %d %d %s", &pid, &jetton, &money, &bet, &blind, action);
-    //得到上家的投注
-    board.set_last_bet(bet);
-
+    
     splited_msg.pop_back();
     string total_pot = splited_msg.back();
     int total_pot_num;
@@ -425,13 +420,26 @@ bool process_sever_message(Core *core, int size, const char* msg) {
     //得到当前底池的总金额
     board.set_total_pot(total_pot_num);
 
-    //ALL IN 测试
-    // const char* rep_msg = "all_in";
-    // board.set_my_jetton(0);
-    // core->sendmesg(rep_msg, 0);
-    // printf("\n[send]: \n%s\n", rep_msg);
+      for (int i=0;i<msg_lines;++i)
+      {
+          if (splited_msg[i].find("inquire") != std::string::npos)
+              continue;
+          std::sscanf(splited_msg[i].c_str(), "%d %d %d %d %d %s", &pid, &jetton, &money, &bet, &blind, action);
+          if(i==1)
+              board.set_last_bet(bet);//得到上家的投注
+          if (pid==board.get_id())
+          {
+              board.set_my_jetton(jetton);
+              board.set_my_money(money);
+          }
+      }
 
-
+      // ALL IN 测试
+      // const char* rep_msg = "all_in";
+      // board.set_my_jetton(0);
+      // core->sendmesg(rep_msg, 0);
+      // printf("\n[send]: \n%s\n", rep_msg);
+      
     //FCR决策测试
      string decision= FCR_decision();
      core->sendmesg(decision.c_str(),0);
