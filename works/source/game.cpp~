@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
             //cout<<"[string]:\n"<<res<<endl;
             //printf("---------------------\n");
-            if ((res.length()>10) && strstr(res.c_str(),"inquire/")!= NULL)
+            //if ((res.length()>10) && strstr(res.c_str(),"inquire/")!= NULL)
             {
                const char* rep_msg = "all_in\n";
                core->sendmesg(rep_msg,0);
