@@ -206,7 +206,7 @@ bool stack_protection()
   //if (jetton - bet) < (blind * 4) and (HS < 0.5) then fold
   //如果（筹码-下注）<(盲注*4)并且（HS<0.5）那么就弃牌
   
-  if ((board.get_my_jetton() - board.get_last_bet() < board.get_blind()*4 ) && (board.get_hand_strength() < 0.5))
+  if ((board.get_my_jetton() - (board.get_last_bet()-board.my_pot) < board.get_blind() * 4 ) && (board.get_hand_strength() < 0.5))
   {
     //执行弃牌fold动作
     return true;
@@ -232,69 +232,95 @@ string FCR_decision()
     prob=prob/100.0;
     
   double rr = board.calculate_RR(); //RR回报率 Rate of Return = Hand Strength / Pot Odds.
+    if (rr == -1) {
+        if (board.get_hand_strength()>0.5)
+            rep_msg="raise 100";
+        else
+            rep_msg="check";
+    }
+    else if (rr < 0.8)
+    {
+        if (prob <= 5)
+        {
+            //5% raise (just for bluff)
+            rep_msg = "raise 100";
+        }
+        else
+        {
+            rep_msg = "fold";
+        }
+    }
+    else if (rr < 1.0)
+    {
+        if (prob <= 80)
+        {
+            rep_msg = "fold";
+        }
+        else
+        {
+            if (prob >= 95)
+            {
+                rep_msg = "call";
+            }
+            else
+            {
+                rep_msg = "raise 100";
+            }
+        }
+    }
+    else if (rr < 1.3)
+    {
+        if (prob <= 60)
+        {
+            rep_msg = "call";
+        }
+        else
+        {
+            rep_msg = "raise 100";
+        }
+    }
+    else // rr >=1.3
+    {
+        if (prob <= 30)
+        {
+            rep_msg = "call";
+        }
+        else
+        {
+            rep_msg = "raise 100";
+        }
+    }
     
-  if (rr < 0.8)
-  {
-    if (prob <= 5)
-    {
-      //5% raise (just for bluff)
-      rep_msg = "raise 50"; //加注数额暂为20
-    }
-    else
-    {
-      rep_msg = "fold";
-    }
-  }
-  else if (rr < 1.0)
-  {
-    if (prob <= 80)
-    {
-      rep_msg = "fold";
-    }
-    else
-    {
-      if (prob >= 95)
-      {
-        rep_msg = "call";
-      }
-      else
-      {
-        rep_msg = "raise 50";
-      }
-    }
-
-  }
-  else if (rr < 1.3)
-  {
-    if (prob <= 60)
-    {
-      rep_msg = "call";
-    }
-    else
-    {
-      rep_msg = "raise 50";
-    }
-
-  }
-  else // rr >=1.3
-  {
-    if (prob <= 30)
-    {
-      rep_msg = "call";
-    }
-    else
-    {
-      rep_msg = "raise 50";
-    }
-  }
-
+    int save_jetton=board.get_my_jetton();
   // 更新筹码信息
     if(rep_msg=="call")
-        board.set_my_jetton(board.get_my_jetton() - board.get_last_bet());
+    {
+        board.set_my_jetton(board.get_my_jetton() - (board.get_last_bet()-board.my_pot));
+        if(board.get_my_jetton()<0)
+        {
+            board.set_my_jetton(0);
+            board.my_pot+=save_jetton;
+        }
+        else
+        {
+            board.my_pot=board.get_last_bet();
+        }
+    }
     else
     {
-        if(rep_msg=="raize 50")
-            board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 50);
+        if(rep_msg=="raize 100")
+        {
+            board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 100);
+            if(board.get_my_jetton()<0)
+            {
+                board.set_my_jetton(0);
+                board.my_pot+=save_jetton;
+            }
+            else
+            {
+                board.my_pot=board.get_last_bet() + 100;
+            }
+        }
     }
   return rep_msg;
 }
@@ -304,7 +330,8 @@ bool process_sever_message(Core *core, int size, const char* msg) {
   /*
   process single message receive from server
   */
-  if (size <= 0 || strlen(msg) == 0)return true;
+  if (size <= 0 || strlen(msg) == 0)
+      return true;
   printf("receive message from server:\n %s\n", msg);
   vector<string> splited_msg = split_msg(size, msg);
   size_t msg_lines = splited_msg.size();
@@ -337,43 +364,28 @@ bool process_sever_message(Core *core, int size, const char* msg) {
         ext_msg = temp.substr(pos + strlen("button:"));
         std::sscanf(ext_msg.c_str(), "%d %d %d", &pid, &jetton, &money);
         printf("button %d have %d jetton %d money\n", pid, jetton, money);
-        if(pid==board.get_id())
-        {
-            board.set_my_jetton(jetton);
-            board.set_my_money(money);
-        }
       }
       else if ((pos = temp.find("small blind:")) != std::string::npos) {
         //小盲注
         ext_msg = temp.substr(pos + strlen("small blind:"));
         std::sscanf(ext_msg.c_str(), "%d %d %d", &pid, &jetton, &money);
         printf("small %d have %d jetton %d money\n", pid, jetton, money);
-          if(pid==board.get_id())
-          {
-              board.set_my_jetton(jetton);
-              board.set_my_money(money);
-          }
       }
       else if ((pos = temp.find("big blind:")) != std::string::npos) {
         //大盲注
         ext_msg = temp.substr(pos + strlen("big blind:"));
         std::sscanf(ext_msg.c_str(), "%d %d %d", &pid, &jetton, &money);
         printf("big %d have %d jetton %d money\n", pid, jetton, money);
-          if(pid==board.get_id())
-          {
-              board.set_my_jetton(jetton);
-              board.set_my_money(money);
-          }
       }
       else {
         std::sscanf(temp.c_str(), "%d %d %d", &pid, &jetton, &money);
         printf("user %d have %d jetton %d money\n", pid, jetton, money);
-          if(pid==board.get_id())
-          {
-              board.set_my_jetton(jetton);
-              board.set_my_money(money);
-          }
       }
+    if(pid==board.get_id())
+     {
+        board.set_my_jetton(jetton);
+        board.set_my_money(money);
+     }
     }
   }
   /*盲注消息
@@ -391,8 +403,8 @@ bool process_sever_message(Core *core, int size, const char* msg) {
         continue;
       std::sscanf(splited_msg[i].c_str(), "%d:%d", &pid, &blind_bet);
       printf("user %d blind %d\n", pid, blind_bet);
-      if (blind_bet > board.get_blind())
-        board.set_blind(blind_bet);//保存大盲注信息
+//      if (blind_bet > board.get_blind())
+//        board.set_blind(blind_bet);//保存大盲注信息
     }
   }
 
@@ -441,15 +453,25 @@ bool process_sever_message(Core *core, int size, const char* msg) {
   {
     int pid, jetton, money, bet, blind;
     char* action;
-    
+      int temp=board.get_blind();
       for (int i=0;i<msg_lines;++i)
       {
           if (splited_msg[i].find("inquire") != std::string::npos)
               continue;
           std::sscanf(splited_msg[i].c_str(), "%d %d %d %d %d %s", &pid, &jetton, &money, &bet, &blind, action);
-          if(i==1)
-              board.set_last_bet(bet);//得到上家的投注
+          if (bet > temp)
+          {
+              if (strcmp("fold", action) == 0)
+                  ;
+              else
+                  temp=bet;
+          }
+          if(pid==board.get_id())
+              board.my_pot=bet;//每次更新自己的下注总大小
       }
+      
+      board.set_last_bet(temp);
+      
       
       splited_msg.pop_back();
       string total_pot = splited_msg.back();
@@ -467,7 +489,12 @@ bool process_sever_message(Core *core, int size, const char* msg) {
       // printf("\n[send]: \n%s\n", rep_msg);
       
     //FCR决策测试
+      cout<<"||---last bet: "<<board.get_last_bet()<<"---||"<<endl;
+      cout<<"||---my pot:"<<board.my_pot<<"---||"<<endl;
+      cout<<"||---已知所有牌情况如下---||"<<endl;
+      board.get_all().print();
      string decision = FCR_decision();
+      cout<<"||---本次决定为:"<<decision<<"---||"<<endl;
      core->sendmesg(decision.c_str(),0);
 
   }
