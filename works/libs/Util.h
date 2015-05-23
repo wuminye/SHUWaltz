@@ -27,15 +27,15 @@ static string value_str[] =
 };
 
 enum SuitOfPoker
-{SPADES,HERATS,DIAMONDS,CLUBS};
+{SPADES,HEARTS,DIAMONDS,CLUBS};
 
 enum RankOfPoker
 {p2,p3,p4,p5,p6,p7,p8,p9,p10,J,Q,K,A};
 
-string temp1[4]={"SPADES","HERATS","DIAMONDS","CLUBS"};
+string temp1[4]={"SPADES","HEARTS","DIAMONDS","CLUBS"};
 vector<string> SuitofPokerVector(temp1,temp1+4);
 
-string temp2[13]={"p2","p3","p4","p5","p6","p7","p8","p9","p10","J","Q","K","A"};
+string temp2[13]={"2","3","4","5","6","7","8","9","10","J","Q","K","A"};
 vector<string> RankofPokerVector(temp2,temp2+13);
 
 int prim[] = {2,3,5,7,11,13,17,19,23,29,31,37,41};
@@ -481,11 +481,12 @@ public:
     HandCards all; //自己手牌+公共牌
     int blind;//盲注大小
     int last_bet;//上家的下注
+    int my_pot; //自己的pot大小
     int my_id;//本玩家的id
     int my_jetton; //自己的剩余筹码
     int my_money;//自己的剩余金币
 
-    Board(){}
+    Board(){blind=40;}
 
     void clear(){
         total_pot=0;
@@ -494,7 +495,7 @@ public:
         community.clear();
         all.clear();
         last_bet=0;
-        blind=0;
+        my_pot=0;
 
     }
     int get_my_money()
@@ -600,6 +601,11 @@ public:
     {
         return mine;
     }
+    
+    HandCards get_all()
+    {
+        return all;
+    }
 
     /*
      计算Hand Strength (HS)
@@ -652,14 +658,25 @@ public:
 
     double calculate_PotOdds()    //计算赔率Pot odds
     {
-        return (double)last_bet / (double)(get_total_pot() + last_bet);
+        double potOdds = (double)(last_bet - my_pot) / (double)(last_bet);
+        cout<<"Pot Odds: "<<potOdds<<endl;
+        return potOdds;
     }
 
     double calculate_RR()     //计算回报率RR
     {
-        double rr = get_hand_strength() / calculate_PotOdds();
-        cout<<"Rate of Return (RR): "<<rr<<endl;
-        return rr;
+        double potOdds = calculate_PotOdds();
+        double rr;
+        if(potOdds>0)
+        {
+            rr = get_hand_strength() / potOdds;
+            cout<<"Rate of Return (RR): "<<rr<<endl;
+            return rr;
+        }
+        else
+        {
+            return -1;
+        }
     }
 
 };
