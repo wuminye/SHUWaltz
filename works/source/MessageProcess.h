@@ -205,7 +205,7 @@ bool stack_protection()
 {
   //if (jetton - bet) < (blind * 4) and (HS < 0.5) then fold
   //如果（筹码-下注）<(盲注*4)并且（HS<0.5）那么就弃牌
-
+  
   if ((board.get_my_jetton() - (board.get_last_bet()-board.my_pot) < board.get_blind() * 4 ) && (board.get_hand_strength() < 0.5))
   {
     //执行弃牌fold动作
@@ -218,11 +218,11 @@ string FCR_decision()
 {
 
   string rep_msg;
-  if (stack_protection())
+  /*if (stack_protection())
   {
     rep_msg = "fold";
     return rep_msg;
-  }
+  }*/
     srand((int)time(NULL));
     int prob=(rand()%101);
     /*for (int m=0;m<100;m++)
@@ -230,7 +230,7 @@ string FCR_decision()
         prob+=1+(rand()%100);
     }
     prob=prob/100.0;
-    */
+    */    
   double rr = board.calculate_RR(); //RR回报率 Rate of Return = Hand Strength / Pot Odds.
     if (rr == -1) {
         if (board.get_hand_strength()>0.5)
@@ -290,7 +290,7 @@ string FCR_decision()
             rep_msg = "raise 100";
         }
     }
-
+    
     int save_jetton=board.get_my_jetton();
   // 更新筹码信息
     if(rep_msg=="call")
@@ -421,7 +421,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
     char point[20];
     int suit_no = 0;
     int rank_no = 0;
-    for (int i = 0; i < msg_lines; ++i)
+    for (int i = 0; i < msg_lines; ++i) 
     {
       if (splited_msg[i].find("hold") != std::string::npos)
         continue;
@@ -445,7 +445,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
   /*
   询问消息
   inquire/ eol
-  (pid jetton money bet blind | check | call | raise | all_in | fold eol)1-8
+  (pid jetton money bet blind | check | call | raise | all_in | fold eol)1-8 
   total pot: num eol
   /inquire eol
   */
@@ -455,7 +455,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
     int pid, jetton, money, bet, blind;
     char action[20];
       int temp=board.get_blind();
-
+      
   	printf("^^^^^^^^1\n");
       for (int i=0;i<msg_lines;++i)
       {
@@ -474,15 +474,15 @@ bool process_sever_message(Core *core, int size, const char* msg) {
           if(pid==board.get_id())
               board.my_pot=bet;//每次更新自己的下注总大小
       }
-
+      
       board.set_last_bet(temp);
-
-
+    
+      
       splited_msg.pop_back();
       string total_pot = splited_msg.back();
       int total_pot_num;
       std::sscanf(total_pot.c_str(), "total pot: %d", &total_pot_num);
-
+      
       //得到当前底池的总金额
       board.set_total_pot(total_pot_num);
 
@@ -492,7 +492,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
       // board.set_my_jetton(0);
       // core->sendmesg(rep_msg, 0);
       // printf("\n[send]: \n%s\n", rep_msg);
-
+      
     //FCR决策测试
       cout<<"||---last bet: "<<board.get_last_bet()<<"---||"<<endl;
       cout<<"||---my pot:"<<board.my_pot<<"---||"<<endl;
@@ -501,7 +501,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
      string decision = FCR_decision();
       cout<<"||---本次决定为:"<<decision<<"---||"<<endl;
      core->sendmesg(decision.c_str(),0);
-
+     
 
   }
 
@@ -633,27 +633,27 @@ bool process_sever_message(Core *core, int size, const char* msg) {
     char point2[20];
     char nut_hand[20];//与公共牌组成最大的手牌类型
     bool in_common = false;
-    for (int i = 0; i < msg_lines; ++i)
+    for (int i = 0; i < msg_lines; ++i) 
     {
       string temp = splited_msg[i];
       if ((pos = temp.find("showdown")) != std::string::npos)
         continue;
-      else if ((pos = temp.find("common/")) != std::string::npos)
+      else if ((pos = temp.find("common/")) != std::string::npos) 
       {
         in_common = true;
         continue;
       }
-      else if ((pos = temp.find("/common")) != std::string::npos)
+      else if ((pos = temp.find("/common")) != std::string::npos) 
       {
         in_common = false;
         continue;
       }
-      if (in_common)
+      if (in_common) 
       {
         std::sscanf(temp.c_str(), "%s %s", color, point);
         printf("common card color:%s point:%s\n", color, point);
       }
-      else
+      else 
       {
         std::sscanf(temp.c_str(), "%d: %d %s %s %s %s %s", &rank, &pid, color, point, color2, point2, nut_hand);
         printf("user %d hold %s %s and %s %s rank at %d with %s\n", pid, color, point, color2, point2, rank, nut_hand);
@@ -669,7 +669,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
   else if (strstr(msg, "pot-win/")) {
     int pid;
     int win_money;
-    for (int i = 0; i < msg_lines; ++i)
+    for (int i = 0; i < msg_lines; ++i) 
     {
       if (splited_msg[i].find("pot-win") != std::string::npos)
         continue;
