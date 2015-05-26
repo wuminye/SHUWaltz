@@ -62,14 +62,33 @@ cd ..
 echo "start your program"
 pushd . >/dev/null
 cd works/target
-for i in 1 2 3 4 5 6 7 8
-do
-chmod u+x game 
-./game 127.0.0.1 6000 127.0.0.$i 600$i $i$i$i$i 0</dev/null 1>$i.txt &
-done
+
+#for i in 1 2 3 4 5 6 7 8
+#do
+#chmod u+x game 
+#./game 127.0.0.1 6000 127.0.0.$i 600$i $i$i$i$i 0</dev/null 1>$i.txt &
+#done
+chmod u+x * 
+echo "start playmates"
+./call   127.0.0.1 6000 127.0.0.1 6001 1111 0</dev/null 1>/dev/null 2>/dev/null &
+./game     127.0.0.1 6000 127.0.0.2 6002 2222 0</dev/null 1>/dev/null 2>/dev/null &
+./raise1    127.0.0.1 6000 127.0.0.3 6003 3333 0</dev/null 1>/dev/null 2>/dev/null &
+./raise100     127.0.0.1 6000 127.0.0.4 6004 4444 0</dev/null 1>/dev/null 2>/dev/null &
+./random   127.0.0.1 6000 127.0.0.5 6005 5555 0</dev/null 1>/dev/null 2>/dev/null &
+./check 127.0.0.1 6000 127.0.0.6 6006 6666 0</dev/null 1>/dev/null 2>/dev/null &
+./all_in   127.0.0.1 6000 127.0.0.7 6007 7777 0</dev/null 1>/dev/null 2>/dev/null &
+
+echo "start your game"
+./game 127.0.0.1 6000 127.0.0.8 6008 8888
+#gdb ./game -ex "r 127.0.0.1 6000 127.0.0.8 6008 8888"
+
 popd >/dev/null
 
 popd >/dev/null
 
 
 ps t
+
+
+
+
