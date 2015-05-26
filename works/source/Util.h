@@ -60,7 +60,7 @@ b = bit turned on depending on rank of card
 class Poker
 {
 public:
-    
+
     int data;
     int init_num;
 
@@ -508,12 +508,12 @@ public:
     {
         return my_money;
     }
-    
+
     void set_my_money(int money)
     {
         my_money=money;
     }
-    
+
     int get_id()
     {
         return my_id;
@@ -522,7 +522,7 @@ public:
     {
         my_id=idn;
     }
-    
+
     int get_total_pot()
     {
         return total_pot;
@@ -532,33 +532,33 @@ public:
     {
         total_pot = new_pot;
     }
-    
+
 
     int get_blind()
     {
         return blind;
     }
-    
+
     void set_blind(int new_blind)
     {
         blind=new_blind;
     }
-    
+
     int get_my_jetton()
     {
         return my_jetton;
     }
-    
+
     void set_my_jetton(int jetton)
     {
         my_jetton=jetton;
     }
-    
+
     int get_last_bet()
     {
         return last_bet;
     }
-    
+
     void set_last_bet(int new_bet)
     {
         last_bet=new_bet;
@@ -577,7 +577,7 @@ public:
     {
         return community;
     }
-    
+
     void add_community(SuitOfPoker color, RankOfPoker point)
     {
         community.add(Poker(color,point));
@@ -607,7 +607,7 @@ public:
     {
         return mine;
     }
-    
+
     HandCards get_all()
     {
         return all;
@@ -622,7 +622,7 @@ public:
      */
     double get_hand_strength()
     {
-    	/*
+
         int win = 0, round;
         vector<Poker> known_cards;
         known_cards = all.GetData();
@@ -657,9 +657,9 @@ public:
 
             enemy.clear();
         }
-*/
-      //  double HS=(double)win/(double)round;
-        double HS = 1.0-((calculate_hand_strength(mine, community, 7, players-1, 2000,NULL) -1) / (players-1));
+
+        double HS=(double)win/(double)round;
+      //  double HS = 1.0-((calculate_hand_strength(mine, community, 7, players-1, 2000,NULL) -1) / (players-1));
         cout<<"Hand Strength: "<<HS<<endl;
         return HS;
     }
