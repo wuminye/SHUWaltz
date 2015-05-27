@@ -232,7 +232,8 @@ string FCR_decision()
     prob=prob/100.0;
     */
   double rr = board.calculate_RR(); //RR回报率 Rate of Return = Hand Strength / Pot Odds.
-    if (rr == -1) {
+    if (rr == -1)
+    {
         if (board.get_hand_strength()>0.5)
             rep_msg="raise 100";
         else
@@ -397,15 +398,16 @@ bool process_sever_message(Core *core, int size, const char* msg) {
   {
     int pid;
     int blind_bet;
-    board.set_blind(0);
-    for (int i = 0; i < msg_lines; ++i) {
-      if (splited_msg[i].find("blind") != std::string::npos)
-        continue;
-      std::sscanf(splited_msg[i].c_str(), "%d:%d", &pid, &blind_bet);
-      printf("user %d blind %d\n", pid, blind_bet);
-//      if (blind_bet > board.get_blind())
-//        board.set_blind(blind_bet);//保存大盲注信息
-    }
+    for (int i = 0; i < msg_lines; ++i)
+      {
+          if (splited_msg[i].find("blind") != std::string::npos)continue;
+          std::sscanf(splited_msg[i].c_str(), "%d:%d", &pid, &blind_bet);
+          printf("user %d blind %d\n", pid, blind_bet);
+          if (blind_bet > board.get_blind())
+          {
+              board.set_blind(blind_bet);//保存大盲注信息
+          }
+      }
   }
 
   /*
@@ -451,16 +453,11 @@ bool process_sever_message(Core *core, int size, const char* msg) {
   */
   else if (strstr(msg, "inquire/"))
   {
-  	printf("^^^^^^^^\n");
     int pid, jetton, money, bet, blind;
     char action[20];
-      int temp=board.get_blind();
-
-  	printf("^^^^^^^^1\n");
+    int temp=board.get_blind();
       for (int i=0;i<msg_lines;++i)
       {
-      	if(i>=splited_msg.size())printf("^^^^^^^^abcdef\n");
-      	  if(strlen(splited_msg[i].c_str())==0)printf("^^^^^^^^12345\n");
           if (splited_msg[i].find("inquire") != std::string::npos)
               continue;
           std::sscanf(splited_msg[i].c_str(), "%d %d %d %d %d %s", &pid, &jetton, &money, &bet, &blind, action);
@@ -474,10 +471,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
           if(pid==board.get_id())
               board.my_pot=bet;//每次更新自己的下注总大小
       }
-
       board.set_last_bet(temp);
-
-
       splited_msg.pop_back();
       string total_pot = splited_msg.back();
       int total_pot_num;
