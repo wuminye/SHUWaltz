@@ -492,7 +492,7 @@ public:
     int my_jetton; //自己的剩余筹码
     int my_money;//自己的剩余金币
 
-    Board(){blind=40;}
+    Board(){ blind=20; }
 
     void clear(){
         total_pot=0;
@@ -502,6 +502,7 @@ public:
         all.clear();
         last_bet=0;
         my_pot=0;
+        blind=20;
 
     }
     int get_my_money()
