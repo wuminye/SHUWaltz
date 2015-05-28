@@ -204,11 +204,10 @@ void test7()
 bool stack_protection()
 {
   //if (jetton - bet) < (blind * 4) and (HS < 0.5) then fold
-  //如果（筹码-下注）<(盲注*4)并且（HS<0.5）那么就弃牌
+  //如果（筹码-下注）<(盲注 * 4)并且（HS < 0.5）那么就弃牌
 
-  if ((board.get_my_jetton() - (board.get_last_bet()-board.my_pot) < board.get_blind() * 4 ) && (board.get_hand_strength() < 0.5))
+  if ((board.get_my_jetton() - (board.get_last_bet()-board.my_pot) < board.get_blind() * 5) && (board.get_hand_strength() < 0.5))
   {
-    //执行弃牌fold动作
     return true;
   }
   return false;
@@ -225,17 +224,14 @@ string FCR_decision()
   }
     srand((int)time(NULL));
     int prob=(rand()%101);
-    /*for (int m=0;m<100;m++)
-    {
-        prob+=1+(rand()%100);
-    }
-    prob=prob/100.0;
-    */
-  double rr = board.calculate_RR(); //RR回报率 Rate of Return = Hand Strength / Pot Odds.
+    double rr = board.calculate_RR(); //RR回报率 Rate of Return = Hand Strength / Pot Odds.
     if (rr == -1)
+        //此时自己注池已是最大注
     {
-        if (board.get_hand_strength()>0.5)
-            rep_msg="raise 100";
+        if (board.get_hand_strength() > 0.7)
+            rep_msg="raise 40";
+        if (board.get_hand_strength() > 0.9)
+            rep_msg="all_in";
         else
             rep_msg="check";
     }
@@ -243,33 +239,36 @@ string FCR_decision()
     {
         if (prob <= 5)
         {
-            //5% raise (just for bluff)
-            rep_msg = "raise 100";
+            rep_msg = "raise 40";//5% raise (bluff)
         }
         else
         {
             rep_msg = "fold";
+            if(board.get_hand_strength() > 0.8)
+                rep_msg = "call";
         }
     }
     else if (rr < 1.0)
     {
-        if (prob <= 80)
+        if (prob <= 80)// %80 fold
         {
             rep_msg = "fold";
+            if(board.get_hand_strength() > 0.8)
+                rep_msg = "call";
         }
         else
         {
             if (prob >= 95)
             {
-                rep_msg = "call";
+                rep_msg = "call";//%5 call
             }
             else
             {
-                rep_msg = "raise 100";
+                rep_msg = "raise 40";//%15 bluff
             }
         }
     }
-    else if (rr < 1.3)
+    else if (rr < 1.2)
     {
         if (prob <= 60)
         {
@@ -277,10 +276,12 @@ string FCR_decision()
         }
         else
         {
-            rep_msg = "raise 100";
+            rep_msg = "raise 40";
+            if(board.get_hand_strength()>0.9)
+                rep_msg="all_in";
         }
     }
-    else // rr >=1.3
+    else
     {
         if (prob <= 30)
         {
@@ -288,11 +289,13 @@ string FCR_decision()
         }
         else
         {
-            rep_msg = "raise 100";
+            rep_msg = "raise 40";
+            if(board.get_hand_strength()>0.9)
+                rep_msg="all_in";
         }
     }
 
-    int save_jetton=board.get_my_jetton();
+    int save_jetton = board.get_my_jetton();
   // 更新筹码信息
     if(rep_msg=="call")
     {
@@ -309,9 +312,9 @@ string FCR_decision()
     }
     else
     {
-        if(rep_msg=="raize 100")
+        if(rep_msg=="raise 40")
         {
-            board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 100);
+            board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 40);
             if(board.get_my_jetton()<0)
             {
                 board.set_my_jetton(0);
@@ -319,7 +322,7 @@ string FCR_decision()
             }
             else
             {
-                board.my_pot=board.get_last_bet() + 100;
+                board.my_pot=board.get_last_bet() + 40;
             }
         }
     }
@@ -409,12 +412,10 @@ bool process_sever_message(Core *core, int size, const char* msg) {
           }
       }
   }
-
   /*
     手牌消息(hold-cards-msg)
     hold/ eol
-    color point eol
-    color point eol
+    color point eol(2 lines)
     /hold eol
   */
   else if (strstr(msg, "hold/"))
@@ -468,9 +469,14 @@ bool process_sever_message(Core *core, int size, const char* msg) {
               else
                   temp=bet;
           }
-          if(pid==board.get_id())
-              board.my_pot=bet;//每次更新自己的下注总大小
+          
+          if(pid==board.get_id())   //更新筹码和下注信息
+          {
+              board.my_pot=bet;
+              board.set_my_jetton(jetton);
+          }
       }
+      
       board.set_last_bet(temp);
       splited_msg.pop_back();
       string total_pot = splited_msg.back();
@@ -492,21 +498,17 @@ bool process_sever_message(Core *core, int size, const char* msg) {
       cout<<"||---my pot:"<<board.my_pot<<"---||"<<endl;
       cout<<"||---已知所有牌情况如下---||"<<endl;
       board.get_all().print();
-     string decision = FCR_decision();
+      string decision = FCR_decision();
       cout<<"||---本次决定为:"<<decision<<"---||"<<endl;
-     core->sendmesg(decision.c_str(),0);
-
-
+      core->sendmesg(decision.c_str(),0);
   }
 
-  /*
+/*
    公牌消息(flop-msg) server发出三张公牌
    flop/ eol
-   color point eol
-   color point eol
-   color point eol
+   color point eol(3 lines)
    /flop eol
-   */
+*/
   else if (strstr(msg, "flop/"))
   {
     char color[3][20];
