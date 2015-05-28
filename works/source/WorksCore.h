@@ -123,7 +123,7 @@ public:
          p++;
      }
      my_name = string(p);
-   //  my_name = "waltz";
+     my_name = "Waltz";
 
      if (networks.Init()<0)
      {
