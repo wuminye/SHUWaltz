@@ -205,12 +205,19 @@ bool stack_protection()
 {
   //if (jetton - bet) < (blind * 4) and (HS < 0.5) then fold
   //如果（筹码-下注）<(盲注 * 4)并且（HS < 0.5）那么就弃牌
-
-  if ((board.get_my_jetton() - (board.get_last_bet()-board.my_pot) < board.get_blind() * 5) && (board.get_hand_strength() < 0.5))
-  {
-    return true;
-  }
-  return false;
+    
+    if((board.get_my_money()+board.get_my_jetton())>board.total_value * 0.5)
+    {
+        return true;
+    }
+    else
+    {
+        if ((board.get_my_jetton() - (board.get_last_bet()-board.my_pot) < board.get_blind() * 5) && (board.get_hand_strength() < 0.5))
+        {
+            return true;
+        }
+        return false;
+    }
 }
 
 string FCR_decision()
@@ -385,6 +392,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
         std::sscanf(temp.c_str(), "%d %d %d", &pid, &jetton, &money);
         printf("user %d have %d jetton %d money\n", pid, jetton, money);
       }
+    board.total_value+=(money+jetton);
     if(pid==board.get_id())
      {
         board.set_my_jetton(jetton);
@@ -474,6 +482,7 @@ bool process_sever_message(Core *core, int size, const char* msg) {
           {
               board.my_pot=bet;
               board.set_my_jetton(jetton);
+              board.my_money=money;
           }
       }
       

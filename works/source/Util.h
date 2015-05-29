@@ -491,6 +491,7 @@ public:
     int my_id;//本玩家的id
     int my_jetton; //自己的剩余筹码
     int my_money;//自己的剩余金币
+    int total_value;//全场金币和筹码总和
 
     Board(){ blind=20; }
 
@@ -503,6 +504,7 @@ public:
         last_bet=0;
         my_pot=0;
         blind=20;
+        total_value=0;
 
     }
     int get_my_money()
