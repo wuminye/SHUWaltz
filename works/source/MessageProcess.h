@@ -206,7 +206,7 @@ bool stack_protection()
   //if (jetton - bet) < (blind * 4) and (HS < 0.5) then fold
   //如果（筹码-下注）<(盲注 * 4)并且（HS < 0.5）那么就弃牌
     
-    if((board.get_my_money()+board.get_my_jetton())>board.total_value * 0.5)
+    if((board.get_my_money()+board.get_my_jetton()) > board.total_value * 0.5)
     {
         return true;
     }
@@ -222,7 +222,13 @@ bool stack_protection()
 
 string FCR_decision()
 {
-
+    size_t num = board.get_all().GetData().size();
+    int begin=1;
+    if (num>2)
+    {
+        begin=0;
+    }
+    
   string rep_msg;
   if (stack_protection())
   {
@@ -242,7 +248,7 @@ string FCR_decision()
         else
             rep_msg="check";
     }
-    else if (rr < 0.8)
+    else if (rr < 0.8-0.2*begin)
     {
         if (prob <= 5)
         {
@@ -255,7 +261,7 @@ string FCR_decision()
                 rep_msg = "call";
         }
     }
-    else if (rr < 1.0)
+    else if (rr < 1.0-0.2*begin)
     {
         if (prob <= 80)// %80 fold
         {
@@ -275,7 +281,7 @@ string FCR_decision()
             }
         }
     }
-    else if (rr < 1.2)
+    else if (rr < 1.2-0.2*begin)
     {
         if (prob <= 60)
         {
@@ -494,7 +500,6 @@ bool process_sever_message(Core *core, int size, const char* msg) {
 
       //得到当前底池的总金额
       board.set_total_pot(total_pot_num);
-
 
       // ALL IN 测试
       // const char* rep_msg = "all_in";
