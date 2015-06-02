@@ -231,6 +231,7 @@ public:
             }
 
         }
+                
         bool Check()
         {
             vector<bool> ifv(52);
@@ -505,7 +506,6 @@ public:
         my_pot=0;
         blind=20;
         total_value=0;
-
     }
     int get_my_money()
     {

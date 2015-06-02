@@ -186,6 +186,34 @@ void test7()
   board.community.clear();
 }
 
+bool stack_protection()
+{
+    //稳赢弃牌
+    if((board.get_my_money() + board.get_my_jetton() + board.my_pot) > board.total_value * 0.25)
+    {
+        return true;
+    }
+    
+    //剩余筹码保护
+    if ((board.get_my_jetton() - (board.get_last_bet() - board.my_pot) < board.get_blind() * 10) && (board.get_hand_strength() < 0.5))
+    {
+        return true;
+    }
+    
+    //已无买入机会，且自身筹码较少时
+    if((board.get_my_money()==0) && ( board.get_my_jetton() < 1000 ) && (board.get_hand_strength() < 0.5))
+    {
+        return true;
+    }
+    
+    //避免盲跟all_in
+    if((board.get_last_bet() >= (board.get_my_jetton() + board.my_pot)) && (board.get_hand_strength() < 0.5))
+    {
+        return true;
+    }
+    
+    return false;
+}
 
 /*
  FOLD/CALL/RAISE DECISION
@@ -195,87 +223,83 @@ void test7()
  Else (RR >= 1.3) 0%  fold, 30% call, 70% raise
  */
 
-/*
- 筹码保护
- 当自己的筹码很少时执行
- 如果叫牌会让你只剩下不到四倍的盲注，那就不用叫牌，除非你有50%以上的胜算
-
- */
-bool stack_protection()
-{
-  //if (jetton - bet) < (blind * 4) and (HS < 0.5) then fold
-  //如果（筹码-下注）<(盲注 * 4)并且（HS < 0.5）那么就弃牌
-    
-    if((board.get_my_money()+board.get_my_jetton())>board.total_value * 0.5)
-    {
-        return true;
-    }
-    else
-    {
-        if ((board.get_my_jetton() - (board.get_last_bet()-board.my_pot) < board.get_blind() * 5) && (board.get_hand_strength() < 0.5))
-        {
-            return true;
-        }
-        return false;
-    }
-}
 
 string FCR_decision()
 {
-
-  string rep_msg;
-  if (stack_protection())
-  {
-    rep_msg = "fold";
-    return rep_msg;
-  }
-    srand((int)time(NULL));
-    int prob=(rand()%101);
-    double rr = board.calculate_RR(); //RR回报率 Rate of Return = Hand Strength / Pot Odds.
-    if (rr == -1)
-        //此时自己注池已是最大注
+    size_t num = board.get_all().GetData().size();
+    int begin=1;
+    if (num>2)
     {
-        if (board.get_hand_strength() > 0.7)
-            rep_msg="raise 40";
-        if (board.get_hand_strength() > 0.9)
-            rep_msg="all_in";
-        else
-            rep_msg="check";
+        begin=0;
     }
-    else if (rr < 0.8)
+    bool money_left=false;
+    if(board.get_my_money()>0)
+        money_left=true;
+    
+    string rep_msg;
+    if (stack_protection())
+    {
+        rep_msg = "fold";
+        return rep_msg;
+    }
+    
+    srand((int)time(NULL));
+    int prob = (rand() % 101);
+    
+    double rr = board.calculate_RR();
+    if (rr == -1)
+    {
+        if (board.get_hand_strength() > 0.6)
+            rep_msg = "raise 20";
+        if (board.get_hand_strength() > 0.7)
+            rep_msg = "raise 80";
+        if (board.get_hand_strength() > 0.8)
+            rep_msg = "raise 100";
+        if (board.get_hand_strength() > 0.9)
+            rep_msg = "raise 200";
+        else
+            rep_msg = "check";
+    }
+    else if (rr < 0.8 - 0.2 * begin)
     {
         if (prob <= 5)
         {
-            rep_msg = "raise 40";//5% raise (bluff)
+            rep_msg = "raise 20";// raise bluff
         }
         else
         {
             rep_msg = "fold";
-            if(board.get_hand_strength() > 0.8)
+            if(board.get_hand_strength() > 0.7)
                 rep_msg = "call";
         }
     }
-    else if (rr < 1.0)
+    else if (rr < 1.0 - 0.2 * begin)
     {
-        if (prob <= 80)// %80 fold
+        if (prob <= 80)
         {
             rep_msg = "fold";
-            if(board.get_hand_strength() > 0.8)
+            if(board.get_hand_strength() > 0.7)
                 rep_msg = "call";
+            if(board.get_hand_strength() > 0.8)
+                rep_msg="raise 20";
+            if(board.get_hand_strength() > 0.9)
+                rep_msg="raise 40";
         }
         else
         {
             if (prob >= 95)
             {
-                rep_msg = "call";//%5 call
+                rep_msg = "call";
             }
             else
             {
-                rep_msg = "raise 40";//%15 bluff
+                rep_msg = "raise 20";
+                if(board.get_hand_strength() > 0.9)
+                    rep_msg="raise 100";
             }
         }
     }
-    else if (rr < 1.2)
+    else if (rr < 1.2 - 0.2 * begin)
     {
         if (prob <= 60)
         {
@@ -283,9 +307,15 @@ string FCR_decision()
         }
         else
         {
-            rep_msg = "raise 40";
-            if(board.get_hand_strength()>0.9)
-                rep_msg="all_in";
+            rep_msg="raise 20";
+            if(board.get_hand_strength() > 0.8)
+                rep_msg="raise 100";
+            if(board.get_hand_strength() > 0.9)
+            {
+                rep_msg="raise 200";
+                if(money_left)
+                    rep_msg="all_in";
+            }
         }
     }
     else
@@ -296,9 +326,15 @@ string FCR_decision()
         }
         else
         {
-            rep_msg = "raise 40";
-            if(board.get_hand_strength()>0.9)
-                rep_msg="all_in";
+            rep_msg = "raise 20";
+            if(board.get_hand_strength() > 0.8)
+                rep_msg="raise 100";
+            if(board.get_hand_strength() > 0.9)
+            {
+                rep_msg="raise 200";
+                if(money_left)
+                    rep_msg="all_in";
+            }
         }
     }
 
@@ -307,7 +343,7 @@ string FCR_decision()
     if(rep_msg=="call")
     {
         board.set_my_jetton(board.get_my_jetton() - (board.get_last_bet()-board.my_pot));
-        if(board.get_my_jetton()<0)
+        if(board.get_my_jetton() < 0)
         {
             board.set_my_jetton(0);
             board.my_pot+=save_jetton;
@@ -319,10 +355,24 @@ string FCR_decision()
     }
     else
     {
-        if(rep_msg=="raise 40")
+        if(rep_msg=="raise 20")
+        {
+            board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 20);
+            if(board.get_my_jetton() < 0)
+            {
+                board.set_my_jetton(0);
+                board.my_pot+=save_jetton;
+            }
+            else
+            {
+                board.my_pot=board.get_last_bet() + 20;
+            }
+        }
+        
+        else if(rep_msg=="raise 40")
         {
             board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 40);
-            if(board.get_my_jetton()<0)
+            if(board.get_my_jetton() < 0)
             {
                 board.set_my_jetton(0);
                 board.my_pot+=save_jetton;
@@ -332,6 +382,55 @@ string FCR_decision()
                 board.my_pot=board.get_last_bet() + 40;
             }
         }
+        
+        else if(rep_msg=="raise 80")
+        {
+            board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 80);
+            if(board.get_my_jetton() < 0)
+            {
+                board.set_my_jetton(0);
+                board.my_pot+=save_jetton;
+            }
+            else
+            {
+                board.my_pot=board.get_last_bet() + 80;
+            }
+        }
+        
+        else if(rep_msg=="raise 100")
+        {
+            board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 100);
+            if(board.get_my_jetton() < 0)
+            {
+                board.set_my_jetton(0);
+                board.my_pot+=save_jetton;
+            }
+            else
+            {
+                board.my_pot=board.get_last_bet() + 100;
+            }
+        }
+        
+        else if(rep_msg=="raise 200")
+        {
+            board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 200);
+            if(board.get_my_jetton() < 0)
+            {
+                board.set_my_jetton(0);
+                board.my_pot+=save_jetton;
+            }
+            else
+            {
+                board.my_pot=board.get_last_bet() + 200;
+            }
+        }
+        
+        else if(rep_msg=="all_in")
+        {
+            board.set_my_jetton(0);
+            board.my_pot+=save_jetton;
+        }
+
     }
   return rep_msg;
 }
@@ -494,7 +593,6 @@ bool process_sever_message(Core *core, int size, const char* msg) {
 
       //得到当前底池的总金额
       board.set_total_pot(total_pot_num);
-
 
       // ALL IN 测试
       // const char* rep_msg = "all_in";
