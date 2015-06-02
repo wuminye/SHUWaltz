@@ -249,14 +249,12 @@ string FCR_decision()
     double rr = board.calculate_RR();
     if (rr == -1)
     {
-        if (board.get_hand_strength() > 0.6)
-            rep_msg = "raise 20";
         if (board.get_hand_strength() > 0.7)
-            rep_msg = "raise 80";
+            rep_msg = "raise 40";
         if (board.get_hand_strength() > 0.8)
-            rep_msg = "raise 100";
+            rep_msg = "raise 80";
         if (board.get_hand_strength() > 0.9)
-            rep_msg = "raise 200";
+            rep_msg = "raise 100";
         else
             rep_msg = "check";
     }
@@ -264,13 +262,13 @@ string FCR_decision()
     {
         if (prob <= 5)
         {
-            rep_msg = "raise 20";// raise bluff
+            rep_msg = "raise 40";// raise bluff
         }
         else
         {
             rep_msg = "fold";
-            if(board.get_hand_strength() > 0.7)
-                rep_msg = "call";
+            if(board.get_hand_strength() > 0.8)
+                rep_msg = "check";
         }
     }
     else if (rr < 1.0 - 0.2 * begin)
@@ -278,10 +276,8 @@ string FCR_decision()
         if (prob <= 80)
         {
             rep_msg = "fold";
-            if(board.get_hand_strength() > 0.7)
-                rep_msg = "call";
             if(board.get_hand_strength() > 0.8)
-                rep_msg="raise 20";
+                rep_msg="check";
             if(board.get_hand_strength() > 0.9)
                 rep_msg="raise 40";
         }
@@ -293,13 +289,15 @@ string FCR_decision()
             }
             else
             {
-                rep_msg = "raise 20";
+                rep_msg = "check";
+                if(board.get_hand_strength() > 0.8)
+                    rep_msg = "raise 40";
                 if(board.get_hand_strength() > 0.9)
-                    rep_msg="raise 100";
+                    rep_msg="raise 80";
             }
         }
     }
-    else if (rr < 1.2 - 0.2 * begin)
+    else if (rr < 1.2 - 0.3 * begin)
     {
         if (prob <= 60)
         {
@@ -307,15 +305,11 @@ string FCR_decision()
         }
         else
         {
-            rep_msg="raise 20";
+            rep_msg="check";
             if(board.get_hand_strength() > 0.8)
-                rep_msg="raise 100";
+                rep_msg="raise 40";
             if(board.get_hand_strength() > 0.9)
-            {
-                rep_msg="raise 200";
-                if(money_left)
-                    rep_msg="all_in";
-            }
+                rep_msg="raise 80";
         }
     }
     else
@@ -326,15 +320,11 @@ string FCR_decision()
         }
         else
         {
-            rep_msg = "raise 20";
+            rep_msg = "check";
             if(board.get_hand_strength() > 0.8)
-                rep_msg="raise 100";
+                rep_msg="raise 80";
             if(board.get_hand_strength() > 0.9)
-            {
-                rep_msg="raise 200";
-                if(money_left)
-                    rep_msg="all_in";
-            }
+                rep_msg="raise 100";
         }
     }
 
@@ -355,21 +345,7 @@ string FCR_decision()
     }
     else
     {
-        if(rep_msg=="raise 20")
-        {
-            board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 20);
-            if(board.get_my_jetton() < 0)
-            {
-                board.set_my_jetton(0);
-                board.my_pot+=save_jetton;
-            }
-            else
-            {
-                board.my_pot=board.get_last_bet() + 20;
-            }
-        }
-        
-        else if(rep_msg=="raise 40")
+         if(rep_msg=="raise 40")
         {
             board.set_my_jetton(board.get_my_jetton() - board.get_last_bet() - 40);
             if(board.get_my_jetton() < 0)
@@ -424,13 +400,6 @@ string FCR_decision()
                 board.my_pot=board.get_last_bet() + 200;
             }
         }
-        
-        else if(rep_msg=="all_in")
-        {
-            board.set_my_jetton(0);
-            board.my_pot+=save_jetton;
-        }
-
     }
   return rep_msg;
 }
